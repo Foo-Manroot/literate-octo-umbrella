@@ -1,3 +1,5 @@
+package malla
+
 /**
  * Clase para representar la malla del juego.
  *
