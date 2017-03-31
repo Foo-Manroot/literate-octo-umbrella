@@ -3,7 +3,7 @@
 /* -------------------------------------------------------- */
 package main
 
-import parser.Parser
+import utils.Parser
 import malla.Malla
 
 
