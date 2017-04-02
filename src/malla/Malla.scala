@@ -18,10 +18,10 @@ package malla
  */
 class Malla (dim_filas: Int, dim_cols: Int, niv: Int) {
 
-  val filas: Int = dim_filas;
-  val columnas: Int = dim_cols;
-  val matriz: List [Int] = inicializar_matriz;
-  val nivel: Int = niv;
+  val filas: Int = dim_filas
+  val columnas: Int = dim_cols
+  val matriz: List [Int] = inicializar_matriz
+  val nivel: Int = niv
 
   /*
    *  Inicializa la lista con (filas * columnas) elementos aleatorios.
@@ -55,6 +55,8 @@ class Malla (dim_filas: Int, dim_cols: Int, niv: Int) {
     }
   }
 
+trait Default[A] { def apply(): A }
+
   /*
    * Obtiene el elemento en la posición fila:columna.
    *
@@ -64,16 +66,19 @@ class Malla (dim_filas: Int, dim_cols: Int, niv: Int) {
    * @param col
    *          Posición X del elemento a obtener.
    *
+   * @param lista
+   *          Lista de la que se quiere obtener el elemento. Si se deja vacío, se usa
+   *        la matriz de esta malla.
    *
    * @return
    *          El elemento en la posición fila:columna de la matriz de juego.
-   *          -1 si la posición no existe.
+   *          null (como una instancia de tipo T) si la posición no existe.
    */
-  def obtener (fila: Int, col: Int): Int = {
+  def obtener[T] (fila: Int, col: Int, lista: List [T] = matriz): T = {
 
     val idx = ((fila * columnas) + col)
 
-    if (idx > matriz.length) -1 else matriz(idx)
+    if (idx > lista.length) null.asInstanceOf [T] else lista (idx)
   }
 
 }
