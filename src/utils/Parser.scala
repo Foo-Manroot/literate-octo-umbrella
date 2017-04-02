@@ -9,7 +9,7 @@ import scala.util.matching.Regex
 object Utils {
 
   val ayuda = "Uso: \n" +
-              ""
+              "candy <nivel_juego>\n"
   /**
    * Comprueba la condición especificada y ejecuta el código de la rama que corresponda.
    * Para ejecutar, por ejemplo, lo siguiente:
@@ -57,7 +57,7 @@ object Utils {
 
     if_else (args.length != 1,
               () => {
-                println (ayuda)
+                print (ayuda)
                 sys.exit (1)
               },
               () => comprobar_arg_nv(args (0))

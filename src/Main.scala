@@ -22,7 +22,5 @@ object Main {
     println ("Malla: ");
 
     malla.imprimir_matriz ();
-
-    println ("asdf");
   }
 }
