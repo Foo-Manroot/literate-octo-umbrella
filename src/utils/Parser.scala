@@ -34,9 +34,9 @@ object Utils {
    *
    * @param cod_else
    *          Código a ejecutar si la condición es falsa. Si no se desea ejecutar nada,
-   *        este parámetro puede ser una función vacía: () => ()
+   *        este parámetro puede omitirse.
    */
-  def if_else [T] (cond: Boolean, cod_if: () => Unit, cod_else: () => Unit): Unit = {
+  def if_else[T] (cond: Boolean, cod_if: () => T, cod_else: () => T = () => ()): T = {
 
     if ( (cond) ) {
 
@@ -47,33 +47,51 @@ object Utils {
     }
   }
 
-
   /**
    * Obtiene el único argumento aceptado (el nivel de juego) y crea la malla de juego.
    *
    * @param args
-   *            Array con
+   *            Array con los argumentos pasados al programa
    */
-  def obtener_args (args: Array [String]): Malla = {
+  def obtener_args (args: Array [String]): Malla= {
 
-    val patrón = "^\\d+$".r
+    if_else (args.length != 1,
+              () => {
+                println (ayuda)
+                sys.exit (1)
+              },
+              () => comprobar_arg_nv(args (0))
+    )
+  }
 
-    if (args.length != 1) {
+  /**
+   * Comprueba si el argumento es un nivel válido. Si lo es, devuelve un objeto de tipo
+   * malla inicializado correctamente.
+   *
+   * @param arg
+   *          El argumento a comprobar
+   *
+   * @return
+   *          Un objeto de tipo malla si el argumento es correcto. Si no, sale
+   *        del programa.
+   */
+  private def comprobar_arg_nv (arg: String): Malla = {
 
-      println (ayuda)
-      sys.exit (1)
-    } else {
+    if_else (esNum (arg),
+              () => try{
 
-      if ( esNum (args (0)) ) {
+                Factoría.crear_malla (arg.toInt)
+              } catch {
 
-        Factoría.crear_malla (args (0).toInt)
-      } else {
+                  case e: Throwable => { log_error (e.getMessage ()); sys.exit (-1) }
+              },
+              () => {
 
-          log_error ("El argumento especificado, '"+ args (0) +
-                      "' no es un número válido");
-          sys.exit (-1)
-      }
-    }
+                log_error ("El argumento especificado, '"+ arg +
+                            "' no es un número válido");
+                sys.exit (-1)
+              }
+    )
   }
 
   /**
