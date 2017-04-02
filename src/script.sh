@@ -1,25 +1,25 @@
 #!/bin/bash
 
-# Compilador a usar
-CC=scalac
+COMPIL=scalac	# Compilador
+INTERP=scala	# Intérprete
 
-# Intérprete
-INTERP=scala
+OUTDIR="class"	# Directorio en el que se crean los archivos .class
+
 
 # Inicializa las variables necesarias con sus valores por defecto
 DIR="$PWD" 			# Directorio de compilación
-CP=""				# Classpath
+CP="$OUTDIR"			# Classpath
 ARGS=""				# Argumentos para el archivo final
-NOMBRE_MAIN="main.Main"		# Nombre de la clase principal
-OUTDIR=class			# Carpeta en la que se generan los archivos
+
+MAIN="Main"			# Nombre la clase principal
+
 
 
 # Texto de ayuda del uso del script
 AYUDA="
-Script para la compilación y ejecución de un archivo Scala (adaptado de
-https://github.com/Foo-Manroot/Script-JFlex-CUP).
+Script para la compilación y ejecución de un analizador con JFlex y CUP.
 Miguel García Martín (Foo-Manroot) <miguel.garciamartin@hotmail.com> - 2016
-v. 1.1
+v. 0.2
 
 Llamada correcta:
 $0 [-opciones | --opciones] [-a | --args][argumentos]
@@ -28,47 +28,50 @@ Estando disponibles las siguientes opciones:
 	-a
 	--args
 		 Establece las opciones que se pasarán al ejecutar el archivo resultante
-		de la compilación, si es que se necesitan. Todo lo que venga después de
-		-a (o --args) se tomará como argumentos y se pasarán directamente. Si
-		son varios elementos, deben separarse con dos puntos, ':'
-
-	-c
-	--clean
-		 Limpia los archivos creados por este archivo (la carpeta $OUTDIR)
+		de la compilación, si es que se necesitan. Todo lo que venga después
+		de -a (o --args) se tomará como argumentos y se pasarán directamente.
+		Si son varios elementos, deben separarse con dos puntos, ':'
 
 	-d
 	--dir
-		 Indica el directorio del proyecto a compilar.
+		 Indica el directorio en el que se encuentran los archivos .lex y .cup
+		(si no se especifica nada, se toma por defecto el directorio actual).
 
 	-h
 	--help
 		  Muestra esta ayuda y termina la ejecución
 
+	-l
+	--limpiar
+	--clean
+		 Elimina todos los archivos generados por el script (la carpeta $OUTDIR).
+
 	-m
 	--main
-		 Establece la clase principal a ser ejecutada. Por defecto, su valor es
-		$NOMBRE_MAIN
+		 Especifica el nombre de la clase principal ($MAIN, por defecto).
 
 	-p
 	--classpath
-		 Establece el classpath para que java pueda ejecutarla (necesario para
-		CUP). Por defecto está vacío. Si se quieren poner varias rutas, deben
-		separarse con dos puntos -> \"path1:path2:path3\".
+		 Establece el classpath para que java pueda ejecutar los archivos de
+		salida. Por defecto es \"$CP\". Si se quieren poner varias rutas,
+		deben separarse con dos puntos -> \"path1:path2:path3\".
 "
 
 # Opciones en formato corto y largo para getopt
-OP_CORTAS=acd:hp:m:
-OP_LARGAS=args,clean,dir:,help,classpath:,main:
+OP_CORTAS=ad:hlm:p:
+OP_LARGAS=args,dir:,help,limpiar,clean,main:,classpath:
 
 # Función sin terminar para procesar las opciones a mano y malamente por si getopt falla
 args_a_mano ()
 {
-
-	# Ya si eso algún día lo haré bien... (aunque se supone que la mayoría de los sistemas soportan getpot)
+	# Ya si eso algún día lo haré bien... (aunque se supone que la mayoría de los
+	# sistemas soportan getpot)
 	echo -e "
-		$0: Error - No se pueden obtener los argumentos ('getopt --test' falló, seguramente porque el sistema no es compatible).
+		$0: Error - No se pueden obtener los argumentos ('getopt --test' falló,"\
+		" seguramente porque el sistema no es compatible).
 
 		El script se puede seguir usando, pero con los valores por defecto.
+		También se pueden cambiar estos valores directamente en el script.
 		"
 	exit -1;
 }
@@ -76,6 +79,7 @@ args_a_mano ()
 # Comprueba los argumentos y establece las variables de manera acorde
 comprobar_args ()
 {
+
 	# Comprueba que se puede usar getopt para obtener las opciones
 	getopt --test > /dev/null
 	if [[ $? != 4 ]]
@@ -84,7 +88,8 @@ comprobar_args ()
 	fi
 
 	# Guarda el resultado para manejar correctamente los errores
-	salida=$(getopt --options $OP_CORTAS --longoptions $OP_LARGAS --name "$0" -- "$@")
+	salida=$(getopt --options $OP_CORTAS --longoptions $OP_LARGAS \
+		 --name "$0" -- "$@")
 
 	if [[ $? != 0 ]]; then
 
@@ -107,30 +112,34 @@ comprobar_args ()
 				# los argumentos para el archivo final y sale del bucle
 				shift 2;
 				IFS=':' read -r -a ARGS <<< "$@"
-				
 				break;;
 
-			-c|--clean)
-				echo -e "-> Borrando la carpeta $OUTDIR/\n"
-				rm -rf "$OUTDIR"
-				echo -e "Archivos borrados"
-				exit 1;;
-
-			-d|--dir)
+			"-d"|--dir)
 				# Comprueba que exista el directorio
 				if [ -d "$2" ]
 				then
 					# Elimina el carácter final, /, si existe
 					DIR="${2%/}"
 				else
-					echo -e "$0: Error - El directorio $2 no existe.\n" >&2
+					echo -e "$0: Error - El directorio '$2' no " \
+						"existe." >&2
 					exit -1;
 				fi
 
 				shift 2;;
 
+			-l|--clean|--limpiar)
+				echo -e "-> Eliminando carpeta '$OUTDIR'"
+				rm -rfv "$DIR/$OUTDIR"
+				echo -e "-> Hecho <- "
+
+				echo "Tareas terminadas."
+
+				exit 1;;
+
 			-m|--main)
-				NOMBRE_MAIN="$2"
+				MAIN="$2"
+
 				shift 2;;
 
 			-p|--classpath)
@@ -143,7 +152,8 @@ comprobar_args ()
 				shift
 				break;;
 		*)
-			echo "$0: Error no identificado - $1" >&2
+			echo "$0: Error no identificado al interpretar los argumentos"\
+				" - $1" >&2
 			exit -3;;
 		esac
 	done
@@ -152,15 +162,15 @@ comprobar_args ()
 	cd "$DIR"
 }
 
-# Crea los archivos .class (jvm bytecode) a partir de los archivos fuente
+# Crea los archivos .class (jvm bytecode) a partir de los fuentes generados en /src
 compilar ()
 {
 	echo -e "\n--------------"
-	echo -e "Creando archivos .class..."
+	echo -e "Creando archivos .class...\n"
 
 	# Crea el archivo .class (redirecciona stderr a stdout
 	# y almacena la salida en una variable)
-	salida=$("$CC" -cp "$CP" -d "$OUTDIR" $(find "$DIR" -name '*.scala') 2>&1)
+	salida=$("$COMPIL" -cp "$CP" -d "$OUTDIR" $(find . -name '*.scala') 2>&1)
 
 	# Comprueba si hay errores
 	if [[ "$salida" =~ .error. ]]
@@ -174,11 +184,28 @@ compilar ()
 	return 0;
 }
 
-# Ejecuta el main
-ejecutar_main ()
+# Ejecuta el programa final
+ejecutar ()
 {
-	cd "$OUTDIR"
-	$INTERP $NOMBRE_MAIN
+	RUTA=$(find . -name "$MAIN.class")
+
+	# Cambia las barras por puntos para obtener la ruta y elimina el principio
+	# (./class/) y la extensión (.class) para obtener el nombre de la clase
+	RUTA="${RUTA#./class/}"
+	RUTA="${RUTA%.class}"
+
+	RUTA=$(echo -e "$RUTA" | sed -e 's/\//./g')
+
+	if [ "$RUTA" ]
+	then
+		echo -e "\n--------------"
+		echo -e "Ejecutando $RUTA"
+                echo -e "--------------\n"
+
+		"$INTERP" -cp "$CP" "$RUTA" ${ARGS[@]}
+	else
+		echo "$0: Error al intentar ejecutar $MAIN.class (no se ha encontrado)" >&2
+	fi
 }
 
 # Ejecuta las funciones principales para la compilación y ejecución (si se quiere) del analizador
@@ -187,7 +214,6 @@ main ()
 	#  Comprueba la existencia de los directorios necesarios.
 	# El árbol de directorios final debe quedar como sigue:
 	#	$CWD
-	#	|
 	#	|-------class/
 	#		|____ ... (archivos .class)
 	if [ ! -d "$OUTDIR" ]
@@ -198,26 +224,31 @@ main ()
 	# Compila para crear los archivos .class
 	if compilar
 	then
-		echo -e "--------------"
+		echo -e "\n--------------"
 		echo -e "\nTareas terminadas\n"
 
 		# Si se ha creado correctamente, intenta ejecutar el archivo
-		echo "¿Ejecutar el programa? (introducir el número de la respuesta elegida)"
+		echo "¿Ejecutar el programa? (introducir el número de la"\
+		     " respuesta elegida)"
 		select respuesta in "Sí" "No"
 		do
 			case $respuesta in
 		       		"Sí" )
-					# Si se ha especificado un archivo .cup, busca Parser.class
-					# y lo ejecuta. Si no, busca el archivo generado con JFlex.
-					if [ "$NOMBRE_MAIN" ]
+					# Si se ha especificado un archivo .cup,
+					# busca Parser.class y lo ejecuta.
+					# Si no, busca el archivo generado con
+					# JFlex.
+					if [ "$MAIN" ]
 					then
-						ejecutar_main
+						ejecutar
 					fi
 
 					break;;
 
 			        "No" )
-					echo -e "Para ejecutar el archivo, use la orden '$INTERP [-cp class] $NOMBRE_MAIN'"
+					echo -e "Para ejecutar el archivo, usar"\
+						" la orden '$INTERP [-cp $CP]"\
+						" $MAIN [-a $ARGS]'"
 					exit;;
 			esac
 		done
