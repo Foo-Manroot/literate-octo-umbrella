@@ -248,7 +248,7 @@ main ()
 			        "No" )
 					echo -e "Para ejecutar el archivo, usar"\
 						" la orden '$INTERP [-cp $CP]"\
-						" $MAIN [-a $ARGS]'"
+						" $MAIN $ARGS'"
 					exit;;
 			esac
 		done

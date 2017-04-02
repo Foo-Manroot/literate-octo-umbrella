@@ -65,6 +65,38 @@ object Utils {
   }
 
   /**
+   * Pide la entrada por teclado en bucle hasta que se introduce una de las opciones
+   * válidas.
+   * Si las opciones aceptadas son [0, 1, 2, 3, 4], la llamada a esta función sería
+   *  pedir_opción (0, 4)
+   *
+   * @param min
+   *          Primera opción del rango (inclusive)
+   *
+   * @param max
+   *          Última opción del rango (inclusive)
+   *
+   * @return
+   *        El valor de la opción seleccionada
+   */
+  def pedir_opción (min: Int, max: Int): Int = {
+
+    val entrada = scala.io.StdIn.readLine ();
+
+    if_else (esNum (entrada)
+              && (entrada.toInt >= min)
+              && (entrada.toInt <= max),
+              () => entrada.toInt,
+              () => {
+
+                print ("Opción no válida.\n" +
+                     "Introduzca un número en el rango [" + min + ", " + max + "]: ")
+                pedir_opción (min, max)
+              }
+    )
+  }
+
+  /**
    * Comprueba si el argumento es un nivel válido. Si lo es, devuelve un objeto de tipo
    * malla inicializado correctamente.
    *
@@ -111,5 +143,5 @@ object Utils {
    * @return
    *        true si todos los elementos de la cadena son dígitos; o false si no.
    */
-  def esNum (x: String) = x forall Character.isDigit;
+  def esNum (x: String) = !x.isEmpty && x.forall (Character.isDigit);
 }
