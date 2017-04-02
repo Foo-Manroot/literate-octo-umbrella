@@ -1,4 +1,8 @@
+/* -------------------------------------------------------- */
+/* Estructura para almacenar los datos de la malla de juego */
+/* -------------------------------------------------------- */
 package malla
+
 
 /**
  * Clase para representar la malla del juego.
@@ -8,12 +12,16 @@ package malla
  *
  * @param dim_cols 
  *        Nº de columnas que debe tener la matriz de juego.
+ *
+ * @param niv
+ *        Nivel del juego
  */
-class Malla (dim_filas: Int, dim_cols: Int) {
+class Malla (dim_filas: Int, dim_cols: Int, niv: Int) {
 
   val filas: Int = dim_filas;
   val columnas: Int = dim_cols;
   val matriz: List [Int] = inicializar_matriz;
+  val nivel: Int = niv;
 
   /*
    *  Inicializa la lista con (filas * columnas) elementos aleatorios.

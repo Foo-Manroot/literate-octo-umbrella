@@ -3,7 +3,7 @@
 /* -------------------------------------------------------- */
 package main
 
-import utils.Parser
+import utils._
 import malla.Malla
 
 
@@ -17,7 +17,11 @@ object Main {
    */
   def main (args: Array[String]) {
 
-    val malla: Malla = Parser.obtener_args
+    val malla: Malla = Utils.obtener_args (args)
+
+    println ("Malla: ");
+
+    malla.imprimir_matriz ();
 
     println ("asdf");
   }
