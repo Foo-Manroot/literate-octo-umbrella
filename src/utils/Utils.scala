@@ -154,7 +154,7 @@ object Utils {
    *
    *
    * @param archivo
-   *          Elemento de tipo java.io.File 
+   *          Elemento de tipo java.io.File
    */
   def toFile (archivo: java.io.File)(op: java.io.PrintWriter => Unit) {
 

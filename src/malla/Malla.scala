@@ -91,7 +91,7 @@ class Malla (dim_filas: Int, dim_cols: Int, niv: Int) {
     "Nivel: " + nivel + "\n"        +
     "Matriz de juego: \n"           +
     /* matriz.toString devuelve "List(1, 2, 3, ...)"; así que se sustituyen los
-     * elementos innecesarios para devolver "1 2 3 4 5..." con los saltos de línea */
+     * elementos innecesarios para devolver "1 2 3 4 5..." */
     matriz.toString.replace (',', ' ')
                    .replace ('L', ' ')
                    .replace ('i', ' ')

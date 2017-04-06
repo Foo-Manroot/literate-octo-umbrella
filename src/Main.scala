@@ -13,12 +13,10 @@ object Main {
                  "2) Guardar\n" + 
                  "0) Salir\n"
 
-  val msg_mov  = "\tSeleccione un movimiento de los siguientes: \n" +
-                 "\t0: Arriba\n" +
+  val msg_mov  = "\t0: Arriba\n" +
                  "\t1: Abajo\n" +
                  "\t2: Derecha\n" +
-                 "\t3: Izquierda\n" +
-                 "\t-> "
+                 "\t3: Izquierda\n"
 
   /**
    * Función inicial.
@@ -120,7 +118,9 @@ object Main {
    */
   def pedir_mov (pieza: (Int, Int), malla: Malla): Int = {
 
-    print (msg_mov)
+    print ("\tSeleccione un movimiento de los siguientes: \n" +
+           msg_mov +
+           "\t-> Movimiento: ")
 
     val mov: Int = Utils.pedir_opción (0, 3)
 
@@ -189,7 +189,57 @@ object Main {
    */
   def mover (elemento: (Int, Int), malla: Malla, movimiento: Int): Unit = {
 
-      /* Elige la opción adecuada en función del movimiento */
+    val x = elemento._1
+    val y = elemento._2
+println ("------------------")
+    /* Elige la opción adecuada en función del movimiento */
+    movimiento match {
+      /* Arriba */
+      case 0 => malla.imprimir_matriz ( cambiar (malla, elemento, (x - 1, y))  )
+      /* Abajo */
+      case 1 => malla.imprimir_matriz ( cambiar (malla, elemento, (x + 1, y))  )
+      /* Derecha */
+      case 2 => malla.imprimir_matriz ( cambiar (malla, elemento, (x, y + 1))  )
+      /* Izquierda */
+      case 3 => malla.imprimir_matriz ( cambiar (malla, elemento, (x, y - 1))  )
+    }
+
+println ("------------------")
   }
+
+  /**
+   * Cambia el primer elemento por el segundo en la lista especificada.
+   *
+   * @param malla
+   *          Objeto con la información del juego
+   *
+   * @param pos_1
+   *          Primera posición a intercambiar (fila, columna)
+   *
+   * @param pos_2
+   *          Segunda posición a intercambiar (fila, columna)
+   *
+   *
+   * @return
+   *          Lista con los elementos intercambiados.
+   */
+  def cambiar (malla: Malla, pos_1: (Int, Int), pos_2: (Int, Int)): List [Any] = {
+
+    val idx_1 = ((pos_1._1 * malla.columnas) + pos_1._2)
+    val idx_2 = ((pos_2._1 * malla.columnas) + pos_2._2)
+
+    val elem_1 = malla.matriz (idx_1)
+    val elem_2 = malla.matriz (idx_2)
+
+    malla.matriz.zipWithIndex.map {
+
+      case (e, i) => {
+
+        if (i == idx_1) elem_2 else if (i == idx_2) elem_1 else e
+      }
+    }
+
+  }
+
 
 }
