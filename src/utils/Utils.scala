@@ -144,4 +144,21 @@ object Utils {
    *        true si todos los elementos de la cadena son dígitos; o false si no.
    */
   def esNum (x: String) = !x.isEmpty && x.forall (Character.isDigit);
+
+  /**
+   * Realiza la operación designada en el archivo pasado como argumento. Por ejemplo,
+   * para imprimir los datos del array:
+   *
+   *    val data = Array ("Pruebas","de","texto")
+   *    toFile (new File ("ejemplo.txt")) { p => data.foreach (p.println) }
+   *
+   *
+   * @param archivo
+   *          Elemento de tipo java.io.File 
+   */
+  def toFile (archivo: java.io.File)(op: java.io.PrintWriter => Unit) {
+
+    val p = new java.io.PrintWriter (archivo)
+    try { op (p) } finally { p.close() }
+  }
 }

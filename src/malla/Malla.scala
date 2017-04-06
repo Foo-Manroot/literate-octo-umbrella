@@ -55,7 +55,6 @@ class Malla (dim_filas: Int, dim_cols: Int, niv: Int) {
     }
   }
 
-trait Default[A] { def apply(): A }
 
   /*
    * Obtiene el elemento en la posición fila:columna.
@@ -79,6 +78,28 @@ trait Default[A] { def apply(): A }
     val idx = ((fila * columnas) + col)
 
     if (idx > lista.length) null.asInstanceOf [T] else lista (idx)
+  }
+
+
+  /**
+   * Devuelve una cadena con la información de la malla.
+   */
+  override def toString: String = {
+
+    "Filas: " + filas + "\n"        +
+    "Columnas: " + columnas + "\n"  +
+    "Nivel: " + nivel + "\n"        +
+    "Matriz de juego: \n"           +
+    /* matriz.toString devuelve "List(1, 2, 3, ...)"; así que se sustituyen los
+     * elementos innecesarios para devolver "1 2 3 4 5..." con los saltos de línea */
+    matriz.toString.replace (',', ' ')
+                   .replace ('L', ' ')
+                   .replace ('i', ' ')
+                   .replace ('s', ' ')
+                   .replace ('t', ' ')
+                   .replace ('(', ' ')
+                   .replace (')', ' ')
+                   .trim
   }
 
 }
