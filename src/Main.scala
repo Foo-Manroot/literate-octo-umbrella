@@ -2,7 +2,7 @@
 /* Funciones principales del juego                          */
 /* -------------------------------------------------------- */
 import utils._
-import malla.Malla
+import malla.Partida
 
 
 object Main {
@@ -24,21 +24,55 @@ object Main {
    */
   def main (args: Array[String]) {
 
-    val malla: Malla = Utils.obtener_args (args)
+    val partida: Partida = Utils.obtener_args (args)
+    val l = crear_lista (partida.filas * partida.columnas)
 
-    println ("Malla: " + malla.matriz (0))
-    malla.imprimir_matriz ();
+    Utils.imprimir_matriz (l);
 
-    menú (malla)
+    menú (partida)
+  }
+
+
+  /**
+   * Inserta un 0 en la posición dada.
+   */
+  def borrar (pos: Int, lista: List [Int]): List [Int] = {
+
+    insertar (0, pos, lista)
+  }
+
+  /**
+   * Inserta el elemento en una posición de la lista.
+   *
+   *
+   * @param color
+   *          Elemento que se quiere añadir
+   *
+   * @param pos
+   *          Posición del elemento a añadir
+   *
+   * @param lista
+   *          Lista en la que añadir el elemento
+   *
+   *
+   * @return
+   *        Una lista con el elemento, sustituyendo el elemento de la posición "pos"
+   */
+  def insertar (color: Int, pos: Int, lista: List [Int]): List [Int] = {
+
+    if (pos == 0)
+      color::lista.tail
+    else
+      lista.head::insertar (color, pos - 1, tablero.tail)
   }
 
   /**
    * Imprime el menú y ejecuta el código según la opción seleccionada.
    *
-   * @param malla
+   * @param partida
    *          Objeto con la información del juego
    */
-  def menú (malla: Malla): Unit = {
+  def menú (partida: Partida): Unit = {
 
     print (msg_menú +
            "--> Introduzca la opción seleccionada: ")
@@ -48,29 +82,32 @@ object Main {
       case 0 => println (" ---- FIN ---- "); sys.exit (0)
       case 1 => {
 
-        val pos: (Int, Int) = pedir_pos (malla)
+        val pos: (Int, Int) = pedir_pos (partida)
 
-        mover (pos, malla, pedir_mov (pos, malla))
+        menú (
+          mover (pos
+                , partida
+                , pedir_mov (pos, partida)
+                )
+        )
       }
-      case 2 => guardar (malla)
+      case 2 => guardar (partida)
       case _ => println ("Opción no reconocida")
     }
-
-    menú (malla)
   }
 
   /**
    * Controla el proceso para guardar el juego en un archivo
    *
-   * @param malla
+   * @param partida
    *          Objeto con la información del juego
    */
-  def guardar (malla: Malla): Unit = {
+  def guardar (partida: Partida): Unit = {
 
     print (" --> Introduzca el nombre del archivo en el que guardar los datos: ")
     val nombre = scala.io.StdIn.readLine ()
 
-    Utils.toFile (new java.io.File (nombre)) {p => p.println (malla.toString) }
+    Utils.toFile (new java.io.File (nombre)) {p => p.println (partida.toString) }
 
     println ("\nArchivo guardado con éxito \n")
   }
@@ -79,21 +116,21 @@ object Main {
   /**
    * Pide la información necesaria para realizar el movimiento y la devuelve
    *
-   * @param malla
+   * @param partida
    *          Objeto con la información del juego
    *
    * @return
    *          Una tupla con la fila y la columna (en ese orden)
    */
-  def pedir_pos (malla: Malla): (Int, Int) = {
+  def pedir_pos (partida: Partida): (Int, Int) = {
 
     print ("--> Introduzca la pieza a mover:\n" +
-            "\t-> Fila (entre 0 y " + malla.filas + "): ")
+            "\t-> Fila (entre 0 y " + (partida.filas - 1) + "): ")
 
-    val fila = Utils.pedir_opción (0, malla.filas)
+    val fila = Utils.pedir_opción (0, partida.filas)
 
-    print ("\t-> Columna (entre 0 y " + malla.columnas + "): ")
-    val col = Utils.pedir_opción (0, malla.columnas)
+    print ("\t-> Columna (entre 0 y " + (partida.columnas - 1)+ "): ")
+    val col = Utils.pedir_opción (0, partida.columnas)
 
     (fila, col)
   }
@@ -104,7 +141,7 @@ object Main {
    * @param pieza
    *          Pieza que se desea mover
    *
-   * @param malla
+   * @param partida
    *          Objeto con la información del juego
    *
    * @return
@@ -114,21 +151,21 @@ object Main {
    *            2 - Derecha
    *            3 - Izquierda
    */
-  def pedir_mov (pieza: (Int, Int), malla: Malla): Int = {
+  def pedir_mov (pieza: (Int, Int), partida: Partida): Int = {
 
     print ("\tSeleccione un movimiento de los siguientes: \n" +
            msg_mov +
            "\t-> Movimiento: ")
 
-    val mov: Int = Utils.pedir_opción (0, 3)
+    val movimiento: Int = Utils.pedir_opción (0, 3)
 
-    if (mov_posible (pieza, malla, mov)) {
+    if (mov_posible (pieza, partida, movimiento)) {
 
-      mov
+      movimiento
     } else {
 
       Utils.log_error ("Ese movimiento no es posible")
-      pedir_mov (pieza, malla)
+      pedir_mov (pieza, partida)
     }
   }
 
@@ -139,7 +176,7 @@ object Main {
    * @param pieza
    *          Pieza que se desea mover
    *
-   * @param malla
+   * @param partida
    *          Objeto con la información del juego
    *
    * @param movimiento
@@ -149,7 +186,7 @@ object Main {
    *            2 - Derecha
    *            3 - Izquierda
    */
-  def mov_posible (pieza: (Int, Int), malla: Malla, movimiento: Int): Boolean = {
+  def mov_posible (pieza: (Int, Int), partida: Partida, movimiento: Int): Boolean = {
 
     val fila = pieza._1
     val col = pieza._2
@@ -158,9 +195,9 @@ object Main {
       /* Arriba (no se puede mover si está en la primera fila) */
       case 0 => (fila != 0)
       /* Abajo (no se puede mover si está en la última fila) */
-      case 1 => (fila != (malla.filas - 1))
+      case 1 => (fila != (partida.filas - 1))
       /* Derecha (no se puede mover si está en la última columna) */
-      case 2 => (col != (malla.columnas - 1))
+      case 2 => (col != (partida.columnas - 1))
       /* Izquierda (no se puede mover si está en la primera columna) */
       case 3 => (col != 0)
       case _ => false
@@ -175,7 +212,7 @@ object Main {
    * @param pieza
    *          Pieza que se desea mover
    *
-   * @param malla
+   * @param partida
    *          Objeto con la información del juego
    *
    * @param movimiento
@@ -184,32 +221,38 @@ object Main {
    *            1 - Abajo
    *            2 - Derecha
    *            3 - Izquierda
+   *
+   *
+   * @return
+   *          Un objeto de tipo partida con la nueva información del juego.
    */
-  def mover (elemento: (Int, Int), malla: Malla, movimiento: Int): Unit = {
+  def mover (elemento: (Int, Int), partida: Partida, movimiento: Int): (Int, List [Any]) = {
 
     /* Elige la opción adecuada en función del movimiento */
     movimiento match {
       /* Arriba */
-      case 0 => cambiar (malla.matriz
-                        , (elemento._1 * malla.columnas) + elemento._2
-                        , ((elemento._1 - 1) * malla.columnas) + elemento._2
-                )
+      case 0 => val l = cambiar (partida.matriz
+                                , (elemento._1 * partida.columnas) + elemento._2
+                                , ((elemento._1 - 1) * partida.columnas) + elemento._2
+                        )
       /* Abajo */
-      case 1 => cambiar (malla.matriz
-                        , (elemento._1 * malla.columnas) + elemento._2
-                        , ((elemento._1 + 1) * malla.columnas) + elemento._2
-                )
+      case 1 => val l = cambiar (partida.matriz
+                                , (elemento._1 * partida.columnas) + elemento._2
+                                , ((elemento._1 + 1) * partida.columnas) + elemento._2
+                        )
       /* Derecha */
-      case 2 => cambiar (malla.matriz
-                        , (elemento._1 * malla.columnas) + elemento._2
-                        , (elemento._1 * malla.columnas) + elemento._2 + 1
-                )
+      case 2 => val l = cambiar (partida.matriz
+                                , (elemento._1 * partida.columnas) + elemento._2
+                                , (elemento._1 * partida.columnas) + elemento._2 + 1
+                        )
       /* Izquierda */
-      case 3 => cambiar (malla.matriz
-                        , (elemento._1 * malla.columnas) + elemento._2
-                        , (elemento._1 * malla.columnas) + elemento._2 - 1
-                )
+      case 3 => val l = cambiar (partida.matriz
+                                , (elemento._1 * partida.columnas) + elemento._2
+                                , (elemento._1 * partida.columnas) + elemento._2 - 1
+                        )
     }
+
+
   }
 
   /**

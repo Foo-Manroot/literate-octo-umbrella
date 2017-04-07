@@ -48,6 +48,24 @@ object Utils {
   }
 
   /**
+   * Crea una matriz de n enteros aleatorios
+   *
+   * @param n
+   *          Número de elementos a crear
+   *
+   * @return
+   *          Lista con los elementos
+   */
+  def crear_lista (n: Int): List [Int] = {
+
+    if (n == 0)
+      Nil
+    else
+      (util.Random.nextInt (7) + 1)::crear_matriz (n - 1)
+  }
+
+
+  /**
    * Obtiene el único argumento aceptado (el nivel de juego) y crea la malla de juego.
    *
    * @param args
