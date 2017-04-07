@@ -3,7 +3,7 @@
 /* -------------------------------------- */
 package utils
 
-import malla.Malla
+import malla.Partida
 import scala.util.matching.Regex
 
 object Utils {
@@ -66,12 +66,16 @@ object Utils {
 
 
   /**
-   * Obtiene el único argumento aceptado (el nivel de juego) y crea la malla de juego.
+   * Obtiene el único argumento aceptado (el nivel de juego) y saca la información
+   * del juego.
    *
    * @param args
    *            Array con los argumentos pasados al programa
+   *
+   * @return
+   *            Un objeto con la información de la partida (filas, columnas y nivel)
    */
-  def obtener_args (args: Array [String]): Malla= {
+  def obtener_args (args: Array [String]): Partida = {
 
     if_else (args.length != 1,
               () => {
@@ -122,15 +126,15 @@ object Utils {
    *          El argumento a comprobar
    *
    * @return
-   *          Un objeto de tipo malla si el argumento es correcto. Si no, sale
+   *          Un objeto de tipo Partida si el argumento es correcto. Si no, sale
    *        del programa.
    */
-  private def comprobar_arg_nv (arg: String): Malla = {
+  private def comprobar_arg_nv (arg: String): Partida = {
 
     if_else (esNum (arg),
               () => try{
 
-                Factoría.crear_malla (arg.toInt)
+                Factoría.crear_partida (arg.toInt)
               } catch {
 
                   case e: Throwable => { log_error (e.getMessage ()); sys.exit (-1) }
