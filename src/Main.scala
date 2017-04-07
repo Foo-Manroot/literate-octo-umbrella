@@ -1,8 +1,6 @@
 /* -------------------------------------------------------- */
 /* Funciones principales del juego                          */
 /* -------------------------------------------------------- */
-package main
-
 import utils._
 import malla.Malla
 
@@ -189,29 +187,36 @@ object Main {
    */
   def mover (elemento: (Int, Int), malla: Malla, movimiento: Int): Unit = {
 
-    val x = elemento._1
-    val y = elemento._2
-println ("------------------")
     /* Elige la opción adecuada en función del movimiento */
     movimiento match {
       /* Arriba */
-      case 0 => malla.imprimir_matriz ( cambiar (malla, elemento, (x - 1, y))  )
+      case 0 => cambiar (malla.matriz
+                        , (elemento._1 * malla.columnas) + elemento._2
+                        , ((elemento._1 - 1) * malla.columnas) + elemento._2
+                )
       /* Abajo */
-      case 1 => malla.imprimir_matriz ( cambiar (malla, elemento, (x + 1, y))  )
+      case 1 => cambiar (malla.matriz
+                        , (elemento._1 * malla.columnas) + elemento._2
+                        , ((elemento._1 + 1) * malla.columnas) + elemento._2
+                )
       /* Derecha */
-      case 2 => malla.imprimir_matriz ( cambiar (malla, elemento, (x, y + 1))  )
+      case 2 => cambiar (malla.matriz
+                        , (elemento._1 * malla.columnas) + elemento._2
+                        , (elemento._1 * malla.columnas) + elemento._2 + 1
+                )
       /* Izquierda */
-      case 3 => malla.imprimir_matriz ( cambiar (malla, elemento, (x, y - 1))  )
+      case 3 => cambiar (malla.matriz
+                        , (elemento._1 * malla.columnas) + elemento._2
+                        , (elemento._1 * malla.columnas) + elemento._2 - 1
+                )
     }
-
-println ("------------------")
   }
 
   /**
    * Cambia el primer elemento por el segundo en la lista especificada.
    *
-   * @param malla
-   *          Objeto con la información del juego
+   * @param lista
+   *          Lista en la que se van a intercambiar los elementos
    *
    * @param pos_1
    *          Primera posición a intercambiar (fila, columna)
@@ -223,20 +228,13 @@ println ("------------------")
    * @return
    *          Lista con los elementos intercambiados.
    */
-  def cambiar (malla: Malla, pos_1: (Int, Int), pos_2: (Int, Int)): List [Any] = {
+  def cambiar (lista: List [Any], pos_1: Int, pos_2: Int): List [Any] = {
 
-    val idx_1 = ((pos_1._1 * malla.columnas) + pos_1._2)
-    val idx_2 = ((pos_2._1 * malla.columnas) + pos_2._2)
+    val elem_1 = lista (pos_1)
+    val elem_2 = lista (pos_2)
 
-    val elem_1 = malla.matriz (idx_1)
-    val elem_2 = malla.matriz (idx_2)
-
-    malla.matriz.zipWithIndex.map {
-
-      case (e, i) => {
-
-        if (i == idx_1) elem_2 else if (i == idx_2) elem_1 else e
-      }
+    lista.zipWithIndex.map {
+      case (e, i) => { if (i == pos_1) elem_2 else if (i == pos_2) elem_1 else e }
     }
 
   }
