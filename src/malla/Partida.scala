@@ -63,9 +63,35 @@ class Partida (dim_filas: Int, dim_cols: Int, niv: Int) {
   def imprimir_matriz (lista: List [Any], cols: Int = columnas): Unit = {
 
     Utils.mapear_indexado (lista) {
-      /* i = índice; e = elemento */
-      (e, i) => if (i % cols == (cols - 1)) print (e + "\n") else print (e + " ")
+      /* Si se trata de una lista de enteros, imprime los colores. Si no, imprime
+      directamente el contenido */
+      case (e: Int , i) => if (i % cols == (cols - 1)) {
+
+                  print (diamante (e) + "\n")
+                } else {
+
+                  print (diamante (e) + " ")
+                }
+
+      case (e, i) => if (i % cols == (cols - 1)) print (e + "\n") else print (e + " ")
     }
   }
 
+  /**
+   * Dvuelve una cadena para representar el diamante con color, según su valor numérico.
+   */
+  def diamante (valor: Int): String = {
+
+    valor match {
+      case 1 => Console.BLUE                  + "1" + Console.RESET
+      case 2 => Console.RED                   + "2" + Console.RESET
+      case 3 => Console.YELLOW                + "3" + Console.RESET
+      case 4 => Console.GREEN                 + "4" + Console.RESET
+      case 5 => Console.CYAN                  + "5" + Console.RESET
+      case 6 => Console.MAGENTA               + "6" + Console.RESET
+      case 7 => Console.BLUE + Console.BOLD   + "7" + Console.RESET
+      case 8 => Console.WHITE                 + "8" + Console.RESET
+      case _ => Console.WHITE + Console.BOLD  + "#" + Console.RESET
+    }
+  }
 }

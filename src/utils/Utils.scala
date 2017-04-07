@@ -48,6 +48,50 @@ object Utils {
   }
 
   /**
+   * Inserta un 0 en la posición dada.
+   *
+   * @param pos
+   *          Posición en la que se debe introducir el elemento
+   *
+   * @param lista
+   *          Lista en la que se debe introducir el elemento
+   *
+   *
+   * @return
+   *          Una nueva lista con un 0 en la posición especificada
+   */
+  def borrar (pos: Int, lista: List [Any]): List [Any] = {
+
+    insertar (0, pos, lista)
+  }
+
+  /**
+   * Inserta el elemento en una posición de la lista.
+   *
+   *
+   * @param color
+   *          Elemento que se quiere añadir
+   *
+   * @param pos
+   *          Posición del elemento a añadir
+   *
+   * @param lista
+   *          Lista en la que añadir el elemento
+   *
+   *
+   * @return
+   *        Una lista con el elemento, sustituyendo el elemento de la posición "pos"
+   */
+  def insertar (color: Any, pos: Int, lista: List [Any]): List [Any] = {
+
+    if (pos == 0)
+      color::lista.tail
+    else
+      lista.head::insertar (color, pos - 1, lista.tail)
+  }
+
+
+  /**
    * Crea una matriz de n enteros aleatorios
    *
    * @param n
@@ -165,6 +209,65 @@ object Utils {
   def esNum (x: String) = !x.isEmpty && x.forall (Character.isDigit);
 
   /**
+   * Comprueba si tres elementos están en la misma fila y de manera consecutiva
+   *
+   * @param A
+   *          Índice del primer elemento de la serie
+   *
+   * @param B
+   *          Índice del segundo elemento de la serie
+   *
+   * @param C
+   *          Índice del tercer elemento de la serie
+   *
+   * @param partida
+   *          Objeto con la información del juego
+   *
+   * @return
+   *          'true' si los elementos estaban en la misma fila; o 'false' si no
+   */
+  def misma_fila (A: Int, B: Int, C: Int, partida: Partida): Boolean = {
+
+    val cols = partida.columnas
+
+    (
+      ((A + 1) == B)
+      && ((B + 1) == C)
+      && ((A % cols) < (B % cols))
+      && ((B % cols) < (C % cols))
+    )
+  }
+
+  /**
+   * Comprueba si dos elementos están en la misma columna y de manera consecutiva
+   *
+   * @param A
+   *          Índice del primer elemento de la serie
+   *
+   * @param B
+   *          Índice del segundo elemento de la serie
+   *
+   * @param C
+   *          Índice del tercer elemento de la serie
+   *
+   * @param partida
+   *          Objeto con la información del juego
+   *
+   * @return
+   *          'true' si los elementos estaban en la misma columna; o 'false' si no
+   */
+  def misma_columna (A: Int, B: Int, C: Int, partida: Partida): Boolean = {
+
+    val cols = partida.columnas
+
+    (
+      ((A + cols) == B)
+      && ((B + cols) == C)
+    )
+  }
+
+
+  /**
    * Realiza la operación designada en el archivo pasado como argumento. Por ejemplo,
    * para imprimir los datos del array:
    *
@@ -180,7 +283,7 @@ object Utils {
     val p = new java.io.PrintWriter (archivo)
     try { op (p) } finally { p.close() }
   }
-  
+
   /**
    * Implementeación propia de map. Aplica la operación "op" a cada elemento de la lista.
    *
@@ -195,9 +298,9 @@ object Utils {
    * @return
    *          La lista resultante de aplicar la operación a la lista anterior.
    */
-  def mapear (lista: List [Any])(op: Any => Unit): List [Any] = {
+  def mapear [A, B] (lista: List [A])(op: A => B): List [B] = {
   
-    if (lista.isEmpty) {
+    if (lista.length == 0) {
   
       Nil
     } else {
@@ -205,6 +308,7 @@ object Utils {
       op (lista.head)::mapear (lista.tail) {op}
     }
   }
+
 
   /**
    * Implementeación propia de map, pero usando índices. Aplica la operación "op"
@@ -216,7 +320,7 @@ object Utils {
    * @param contador
    *            Contador para saber el índice de la posición actual. Si se quiere empezar
    *          en un índice diferente a 0, se puede establecer el valor deseado.
-   *            Si se omite, toma el valor 0 por defecto.
+   *          Si se omite, toma el valor 0 por defecto.
    *
    * @param op
    *          Operación a aplicar. Debe tomar como argumentos un elemento del mismo tipo
@@ -226,8 +330,8 @@ object Utils {
    * @return
    *          La lista resultante de aplicar la operación a la lista anterior.
    */
-  def mapear_indexado (lista: List [Any], contador: Int = 0)
-                      (op: (Any, Int) => Unit): List [Any] = {
+  def mapear_indexado [A, B] (lista: List [A], contador: Int = 0)
+                             (op: (A, Int) => B): List [B] = {
   
     if (lista.isEmpty) {
   
