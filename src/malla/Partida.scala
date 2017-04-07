@@ -3,6 +3,7 @@
 /* -------------------------------------------------------- */
 package malla
 
+import utils.Utils
 
 /**
  * Clase para representar la malla del juego.
@@ -23,13 +24,28 @@ class Partida (dim_filas: Int, dim_cols: Int, niv: Int) {
   val nivel: Int = niv
 
   /**
-   * Devuelve una cadena con la información de la partida.
+   * Devuelve una cadena con la información de la partida, incluyendo el estado actual
+   * pasado como argumento.
+   *
+   * @param estado
+   *          Tupla con la puntuación y la matriz de juego (en ese orden)
    */
-  override def toString: String = {
+  def toString (estado: (Int, List [Any])): String = {
 
-    "Filas: " + filas + "\n"        +
-    "Columnas: " + columnas + "\n"  +
-    "Nivel: " + nivel + "\n"
+    "Filas: " + filas + "\n"          +
+    "Columnas: " + columnas + "\n"    +
+    "Nivel: " + nivel + "\n"          +
+    "Puntuación: " + estado._1 + "\n" +
+    /* lista.toString devuelve "List(1, 2, 3, ...)"; así que se sustituyen los
+     * elementos innecesarios para devolver "1 2 3 4 5..." */
+    estado._2.toString.replace (',', ' ')
+                      .replace ('L', ' ')
+                      .replace ('i', ' ')
+                      .replace ('s', ' ')
+                      .replace ('t', ' ')
+                      .replace ('(', ' ')
+                      .replace (')', ' ')
+                      .trim
   }
 
   /**
@@ -40,16 +56,15 @@ class Partida (dim_filas: Int, dim_cols: Int, niv: Int) {
    *          Lista a ser impresa, con el número de de columnas especificado en la
    *        declaración del objeto. Puede omitirse (por defecto, es 'matriz').
    *
-   *  @param contador
-   *          Contador para controlar la columna que se está imprimiendo. Puede omitirse
-   *        (por defecto, es 1).
+   *  @param cols
+   *          Número de columnas para formatear la matriz. Puede omitirse (por defecto,
+   *        es el valor de "columnas")
    */
-  def imprimir_matriz[T] (lista: List[T] = matriz, contador: Int = 1): Unit = {
+  def imprimir_matriz (lista: List [Any], cols: Int = columnas): Unit = {
 
-    lista.zipWithIndex.map {
+    Utils.mapear_indexado (lista) {
       /* i = índice; e = elemento */
-      case (e, i) =>
-        if (i % columnas == (columnas - 1)) print (e + "\n") else print (e + " ")
+      (e, i) => if (i % cols == (cols - 1)) print (e + "\n") else print (e + " ")
     }
   }
 

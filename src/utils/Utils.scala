@@ -58,10 +58,7 @@ object Utils {
    */
   def crear_lista (n: Int): List [Int] = {
 
-    if (n == 0)
-      Nil
-    else
-      (util.Random.nextInt (7) + 1)::crear_matriz (n - 1)
+    if (n <= 0) Nil else (util.Random.nextInt (7) + 1)::crear_lista (n - 1)
   }
 
 
@@ -183,4 +180,62 @@ object Utils {
     val p = new java.io.PrintWriter (archivo)
     try { op (p) } finally { p.close() }
   }
+  
+  /**
+   * Implementeación propia de map. Aplica la operación "op" a cada elemento de la lista.
+   *
+   * @param lista
+   *          Lista a la que se le debe aplicar la operación.
+   *
+   * @param op
+   *          Operación a aplicar. Debe tomar como argumento un elemento del mismo tipo
+   *        que el de la lista.
+   *
+   *
+   * @return
+   *          La lista resultante de aplicar la operación a la lista anterior.
+   */
+  def mapear (lista: List [Any])(op: Any => Unit): List [Any] = {
+  
+    if (lista.isEmpty) {
+  
+      Nil
+    } else {
+  
+      op (lista.head)::mapear (lista.tail) {op}
+    }
+  }
+
+  /**
+   * Implementeación propia de map, pero usando índices. Aplica la operación "op"
+   * a cada elemento de la lista.
+   *
+   * @param lista
+   *            Lista a la que se le debe aplicar la operación.
+   *
+   * @param contador
+   *            Contador para saber el índice de la posición actual. Si se quiere empezar
+   *          en un índice diferente a 0, se puede establecer el valor deseado.
+   *            Si se omite, toma el valor 0 por defecto.
+   *
+   * @param op
+   *          Operación a aplicar. Debe tomar como argumentos un elemento del mismo tipo
+   *        que el de la lista y un entero (el contador), en ese orden.
+   *
+   *
+   * @return
+   *          La lista resultante de aplicar la operación a la lista anterior.
+   */
+  def mapear_indexado (lista: List [Any], contador: Int = 0)
+                      (op: (Any, Int) => Unit): List [Any] = {
+  
+    if (lista.isEmpty) {
+  
+      Nil
+    } else {
+  
+      op (lista.head, contador)::mapear_indexado (lista.tail, contador + 1) {op}
+    }
+  }
+
 }

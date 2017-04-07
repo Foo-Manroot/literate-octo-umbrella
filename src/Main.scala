@@ -25,18 +25,64 @@ object Main {
   def main (args: Array[String]) {
 
     val partida: Partida = Utils.obtener_args (args)
-    val l = crear_lista (partida.filas * partida.columnas)
+    val l = Utils.crear_lista (partida.filas * partida.columnas)
 
-    Utils.imprimir_matriz (l);
+    partida.imprimir_matriz (l);
 
-    menú (partida)
+    menú (partida, (0, l))
+  }
+
+
+  /**
+   * Bucle principal.
+   * Imprime el menú y ejecuta el código según la opción seleccionada.
+   *
+   * @param partida
+   *          Objeto con la información del juego
+   *
+   * @param estado
+   *          Tupla con la puntuación y la matriz de juego (en ese orden)
+   */
+  def menú (partida: Partida, estado: (Int, List [Any])): Unit = {
+
+    print (msg_menú +
+           "--> Introduzca la opción seleccionada: ")
+
+    Utils.pedir_opción (0, 2) match {
+
+      case 0 => println (" ---- FIN ---- "); sys.exit (0)
+      case 1 => {
+
+          val pos: (Int, Int) = pedir_pos (partida)
+
+//          menú (partida
+                mover (pos
+                        , partida
+                        , pedir_mov (pos, partida)
+                        , estado
+                  )
+//          )
+        }
+      case 2 => guardar (partida, estado); menú (partida, estado)
+      case _ => println ("Opción no reconocida")
+    }
   }
 
 
   /**
    * Inserta un 0 en la posición dada.
+   *
+   * @param pos
+   *          Posición en la que se debe introducir el elemento
+   *
+   * @param lista
+   *          Lista en la que se debe introducir el elemento
+   *
+   *
+   * @return
+   *          Una nueva lista con un 0 en la posición especificada
    */
-  def borrar (pos: Int, lista: List [Int]): List [Int] = {
+  def borrar (pos: Int, lista: List [Any]): List [Any] = {
 
     insertar (0, pos, lista)
   }
@@ -58,42 +104,12 @@ object Main {
    * @return
    *        Una lista con el elemento, sustituyendo el elemento de la posición "pos"
    */
-  def insertar (color: Int, pos: Int, lista: List [Int]): List [Int] = {
+  def insertar (color: Any, pos: Int, lista: List [Any]): List [Any] = {
 
     if (pos == 0)
       color::lista.tail
     else
-      lista.head::insertar (color, pos - 1, tablero.tail)
-  }
-
-  /**
-   * Imprime el menú y ejecuta el código según la opción seleccionada.
-   *
-   * @param partida
-   *          Objeto con la información del juego
-   */
-  def menú (partida: Partida): Unit = {
-
-    print (msg_menú +
-           "--> Introduzca la opción seleccionada: ")
-
-    Utils.pedir_opción (0, 2) match {
-
-      case 0 => println (" ---- FIN ---- "); sys.exit (0)
-      case 1 => {
-
-        val pos: (Int, Int) = pedir_pos (partida)
-
-        menú (
-          mover (pos
-                , partida
-                , pedir_mov (pos, partida)
-                )
-        )
-      }
-      case 2 => guardar (partida)
-      case _ => println ("Opción no reconocida")
-    }
+      lista.head::insertar (color, pos - 1, lista.tail)
   }
 
   /**
@@ -101,13 +117,18 @@ object Main {
    *
    * @param partida
    *          Objeto con la información del juego
+   *
+   * @param estado
+   *          Tupla con la puntuación y la matriz de juego (en ese orden)
    */
-  def guardar (partida: Partida): Unit = {
+  def guardar (partida: Partida, estado: (Int, List [Any])): Unit = {
 
     print (" --> Introduzca el nombre del archivo en el que guardar los datos: ")
     val nombre = scala.io.StdIn.readLine ()
 
-    Utils.toFile (new java.io.File (nombre)) {p => p.println (partida.toString) }
+    Utils.toFile (new java.io.File (nombre)) {
+      p => p.println (partida.toString (estado))
+    }
 
     println ("\nArchivo guardado con éxito \n")
   }
@@ -129,7 +150,7 @@ object Main {
 
     val fila = Utils.pedir_opción (0, partida.filas)
 
-    print ("\t-> Columna (entre 0 y " + (partida.columnas - 1)+ "): ")
+    print ("\t-> Columna (entre 0 y " + (partida.columnas - 1) + "): ")
     val col = Utils.pedir_opción (0, partida.columnas)
 
     (fila, col)
@@ -215,6 +236,9 @@ object Main {
    * @param partida
    *          Objeto con la información del juego
    *
+   * @param estado
+   *          Tupla con la puntuación y la matriz de juego (en ese orden)
+   *
    * @param movimiento
    *          Movimiento que se desea realizar, siendo un valor de los siguientes:
    *            0 - Arriba
@@ -224,32 +248,43 @@ object Main {
    *
    *
    * @return
-   *          Un objeto de tipo partida con la nueva información del juego.
+   *          Una tupla con la nueva puntuación
    */
-  def mover (elemento: (Int, Int), partida: Partida, movimiento: Int): (Int, List [Any]) = {
+  def mover (elemento: (Int, Int)
+            , partida: Partida
+            , movimiento: Int
+            , estado: (Int, List [Any])): Unit = {// (Int, List [Any]) = {
 
     /* Elige la opción adecuada en función del movimiento */
     movimiento match {
       /* Arriba */
-      case 0 => val l = cambiar (partida.matriz
-                                , (elemento._1 * partida.columnas) + elemento._2
-                                , ((elemento._1 - 1) * partida.columnas) + elemento._2
-                        )
+      case 0 => partida.imprimir_matriz (
+                cambiar (estado._2
+                        , (elemento._1 * partida.columnas) + elemento._2
+                        , ((elemento._1 - 1) * partida.columnas) + elemento._2
+                )
+                )
       /* Abajo */
-      case 1 => val l = cambiar (partida.matriz
-                                , (elemento._1 * partida.columnas) + elemento._2
-                                , ((elemento._1 + 1) * partida.columnas) + elemento._2
-                        )
+      case 1 => partida.imprimir_matriz (
+                cambiar (estado._2
+                        , (elemento._1 * partida.columnas) + elemento._2
+                        , ((elemento._1 + 1) * partida.columnas) + elemento._2
+                )
+                )
       /* Derecha */
-      case 2 => val l = cambiar (partida.matriz
-                                , (elemento._1 * partida.columnas) + elemento._2
-                                , (elemento._1 * partida.columnas) + elemento._2 + 1
-                        )
+      case 2 => partida.imprimir_matriz (
+                cambiar (estado._2
+                        , (elemento._1 * partida.columnas) + elemento._2
+                        , (elemento._1 * partida.columnas) + elemento._2 + 1
+                )
+                )
       /* Izquierda */
-      case 3 => val l = cambiar (partida.matriz
-                                , (elemento._1 * partida.columnas) + elemento._2
-                                , (elemento._1 * partida.columnas) + elemento._2 - 1
-                        )
+      case 3 => partida.imprimir_matriz (
+                cambiar (estado._2
+                        , (elemento._1 * partida.columnas) + elemento._2
+                        , (elemento._1 * partida.columnas) + elemento._2 - 1
+                )
+                )
     }
 
 
@@ -276,11 +311,7 @@ object Main {
     val elem_1 = lista (pos_1)
     val elem_2 = lista (pos_2)
 
-    lista.zipWithIndex.map {
-      case (e, i) => { if (i == pos_1) elem_2 else if (i == pos_2) elem_1 else e }
-    }
-
+    insertar (elem_2, pos_1, insertar (elem_1, pos_2, lista))
   }
-
 
 }

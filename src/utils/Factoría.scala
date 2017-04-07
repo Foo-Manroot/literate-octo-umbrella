@@ -3,8 +3,7 @@
 /* ----------------------------------- */
 package utils
 
-
-import malla.Malla
+import malla.Partida
 
 
 object Factoría {
