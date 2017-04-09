@@ -271,6 +271,110 @@ object Utils {
     )
   }
 
+  /**
+   * Obtiene la columna especificada de la matriz pasada como argumento.
+   *
+   * @param partida
+   *          Objeto con la información del juego
+   *
+   * @param lista
+   *          Matriz de juego
+   *
+   * @param col
+   *          Columna que se desea obtener (el índice empieza en 0)
+   *
+   *
+   * @return
+   *          Una lista con los elementos de la columna especificada
+   */
+  def obtener_col (partida: Partida, lista: List [Any], col: Int): List [Any] = {
+
+    Utils.mapear_indexado (lista) {
+      (e, i) => if (i % partida.columnas == col) e else null
+    }
+  }
+
+  /**
+   * Inserta la lista con la columna en la matriz.
+   *
+   * @param partida
+   *          Objeto con la información del juego
+   *
+   * @param lista
+   *          Matriz de juego
+   *
+   * @param col
+   *          Índice de la columna en la que se deben introducir los datos
+   *
+   * @param columna
+   *          Lista con los datos a introducir
+   *
+   * @param contador
+   *            Contador para saber el índice de la posición actual. Si se quiere empezar
+   *          en un índice diferente a 0, se puede establecer el valor deseado.
+   *          Si se omite, toma el valor 0 por defecto.
+   *
+   * @return
+   *          Una nueva lista resultado de añadir los elementos de la columna en el
+   *        índice indicado a la lista inicial.
+   */
+  def insertar_col (partida: Partida
+                    , lista: List [Any]
+                    , col: Int
+                    , columna: List [Any]
+                    , contador: Int = 0): List [Any] = {
+
+    if (lista.length == 0) {
+
+      Nil
+    } else {
+
+      if (contador % partida.columnas == 0) {
+
+        columna.head::insertar_col (partida
+                                    , lista.tail
+                                    , col
+                                    , columna.tail
+                                    , contador + 1)
+      } else {
+
+        lista.head::insertar_col (partida
+                                  , lista.tail
+                                  , col
+                                  , columna
+                                  , contador + 1)
+      }
+    }
+  }
+
+  /**
+   * Cambia el primer elemento por el segundo en la lista especificada.
+   *
+   * @param lista
+   *          Lista en la que se van a intercambiar los elementos
+   *
+   * @param pos_1
+   *          Primera posición a intercambiar (fila, columna)
+   *
+   * @param pos_2
+   *          Segunda posición a intercambiar (fila, columna)
+   *
+   *
+   * @return
+   *          Lista con los elementos intercambiados.
+   */
+  def cambiar (lista: List [Any], pos_1: Int, pos_2: Int): List [Any] = {
+
+    val elem_1 = lista (pos_1)
+    val elem_2 = lista (pos_2)
+
+    Utils.mapear_indexado (lista) {
+
+      case (e, i) => if (i == pos_1) { elem_2 } else { if (i == pos_2) elem_1 else e }
+    }
+
+  }
+
 
   /**
    * Realiza la operación designada en el archivo pasado como argumento. Por ejemplo,
@@ -304,12 +408,12 @@ object Utils {
    *          La lista resultante de aplicar la operación a la lista anterior.
    */
   def mapear [A, B] (lista: List [A])(op: A => B): List [B] = {
-  
+
     if (lista.length == 0) {
-  
+
       Nil
     } else {
-  
+
       op (lista.head)::mapear (lista.tail) {op}
     }
   }
