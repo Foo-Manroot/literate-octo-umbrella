@@ -320,7 +320,7 @@ object Utils {
    */
   def insertar_col (partida: Partida
                     , lista: List [Any]
-                    , col: Int
+                    , col_idx: Int
                     , columna: List [Any]
                     , contador: Int = 0): List [Any] = {
 
@@ -329,18 +329,18 @@ object Utils {
       Nil
     } else {
 
-      if (contador % partida.columnas == 0) {
+      if (contador % partida.columnas == col_idx) {
 
         columna.head::insertar_col (partida
                                     , lista.tail
-                                    , col
+                                    , col_idx
                                     , columna.tail
                                     , contador + 1)
       } else {
 
         lista.head::insertar_col (partida
                                   , lista.tail
-                                  , col
+                                  , col_idx
                                   , columna
                                   , contador + 1)
       }
@@ -372,7 +372,6 @@ object Utils {
 
       case (e, i) => if (i == pos_1) { elem_2 } else { if (i == pos_2) elem_1 else e }
     }
-
   }
 
 
@@ -441,9 +440,9 @@ object Utils {
    */
   def mapear_indexado [A, B] (lista: List [A], contador: Int = 0)
                              (op: (A, Int) => B): List [B] = {
-  
-    if (lista.isEmpty) {
-  
+
+    if (lista.length == 0) {
+
       Nil
     } else {
 
@@ -458,6 +457,30 @@ object Utils {
       }
     }
 
+  }
+
+  /**
+   * Invierte el contenido de la lista.
+   *
+   * @param lista
+   *          Lista a invertir
+   *
+   *
+   * @return
+   *          Una nueva lista con los elementos invertidos
+   */
+  def invertir (lista: List [Any]): List [Any] = {
+
+    def inv_aux (invertida: List [Any], lista: List [Any]) : List[Any] = {
+
+      lista match {
+
+        case Nil => invertida
+        case (h::t) => inv_aux (h::invertida, t)
+      }
+    }
+
+    inv_aux (Nil, lista)
   }
 
 }

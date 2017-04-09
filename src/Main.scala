@@ -27,8 +27,6 @@ object Main {
     val partida: Partida = Utils.obtener_args (args)
     val l = Utils.crear_lista (partida.filas * partida.columnas)
 
-    partida.imprimir_matriz (l);
-
     menú (partida, (0, l))
   }
 
@@ -45,25 +43,186 @@ object Main {
    */
   def menú (partida: Partida, estado: (Int, List [Any])): Unit = {
 
+    println ("*******\n" +
+             "Puntos: " + estado._1 + "\n")
+    partida.imprimir_matriz (estado._2);
+
     print (msg_menú +
            "--> Introduzca la opción seleccionada: ")
 
     Utils.pedir_opción (0, 2) match {
 
       case 0 => println (" ---- FIN ---- "); sys.exit (0)
-      case 1 => {
 
-        val pos: (Int, Int) = pedir_pos (partida)
-        val l: List [Any] = mover (pos
-                                  , partida
-                                  , pedir_mov (pos, partida)
-                                  , estado
-                            )
+      case 1 => menú (partida, movimiento (partida, estado))
 
-        partida.imprimir_matriz (eliminar (l, comprobar_matriz (partida, l)))
-      }
       case 2 => guardar (partida, estado); menú (partida, estado)
+
       case _ => println ("Opción no reconocida")
+    }
+  }
+
+  /**
+   * Función principal para pedir por teclado los datos del movimiento y, tras
+   * intercambiar los elementos, realizar las comprobaciones necesarias (tratando los
+   * diamantes vacíos).
+   *
+   * @param partida
+   *          Objeto con la información del juego
+   *
+   * @param estado
+   *          Tupla con la puntuación y la matriz de juego (en ese orden)
+   *
+   *
+   * @return
+   *          Una nueva tupla de estado con la puntuación y la matriz de juego
+   *        actualizadas (en ese orden).
+   */
+  def movimiento (partida: Partida, estado: (Int, List [Any])): (Int, List [Any]) = {
+
+      val pos: (Int, Int) = pedir_pos (partida)
+      val l: List [Any] = mover (pos
+                                , partida
+                                , pedir_mov (pos, partida)
+                                , estado
+                          )
+
+      val huecos: List [Any] = eliminar (l, comprobar_matriz (partida, l))
+      val puntos: Int = (estado._1 + contar_huecos (huecos))
+
+      val nueva_matriz: List [Any] = tratar_huecos (partida, huecos)
+
+      println ("Huecos: ")
+      partida.imprimir_matriz (huecos)
+      println (" ---- ")
+
+      (puntos, nueva_matriz)
+  }
+
+  /**
+   * Rellena los huecos creados al eliminar (poner a 0) las posiciones con coincidencias.
+   *
+   * @param partida
+   *          Objeto con la información del juego
+   *
+   * @param lista
+   *          Matriz de juego
+   *
+   *
+   * @return
+   *          Una nueva lista sin diamantes vacíos, rellenando la lista pasada como
+   *        argumento según las reglas de la práctica
+   */
+  def tratar_huecos (partida: Partida, lista: List [Any]): List [Any] = {
+
+    def tratar_huecos_aux_col (partida: Partida
+                              , lista: List [Any]
+                              , col: Int = 0): List [Any] = {
+
+      if (col >= partida.columnas) {
+
+        lista
+      } else {
+
+        val lista_col = Utils.obtener_col (partida, lista, col)
+
+        val salida = Utils.invertir (tratar_col (Utils.invertir (lista_col)))
+
+        val matriz = Utils.insertar_col (partida, lista, col, salida)
+
+        tratar_huecos_aux_col (partida, matriz, col + 1)
+      }
+    }
+
+    tratar_huecos_aux_col (partida, lista, 0)
+  }
+
+  /**
+   * Rellena los huecos que pudiera haber en la columna pasada como argumento.
+   */
+  def tratar_col (columna: List [Any]): List [Any] = {
+
+    val elem = columna.head
+
+    if (columna.length == 1) {
+
+      if (elem == 0) Utils.crear_diamante::Nil else elem::Nil
+    } else {
+
+      if (elem == 0) {
+
+        val cambiado: List [Any] = subir_diamante (columna)
+        cambiado.head::tratar_col (cambiado.tail)
+      } else {
+
+        elem::tratar_col (columna.tail)
+      }
+    }
+  }
+
+  /**
+   * "Sube" el diamante del principio de la lista hasta la posición más alta posible (al
+   * final de la lista).
+   *
+   * @param columna
+   *          Lista con el contenido de la columna a tratar.
+   *
+   *
+   * @return
+   *          Una nueva lista con el hueco rellenado.
+   */
+  def subir_diamante (columna: List [Any]): List [Any] = {
+
+    val lleno: (Any, Int) = buscar_lleno (columna)
+
+    if (lleno._1 == 0) {
+
+      Utils.crear_diamante::columna.tail
+    } else {
+
+      Utils.cambiar (columna, 0, lleno._2)
+    }
+  }
+
+  /**
+   * Busca un diamante no vacío (distinto de 0) en la lista.
+   *
+   * @param lista
+   *          Lista en la que busca
+   *
+   * @param idx
+   *          Índice para saber cuántos elementos se han comprobado. Por defecto,
+   *        empieza en 0
+   *
+   *
+   * @return
+   *          Una tupla con el elemento distinto de 0, si se ha encontrado alguno, y el
+   *        índice en el que se encontró.
+   */
+  def buscar_lleno (lista: List [Any], idx: Int = 0): (Any, Int) = {
+
+    val elem = lista.head
+
+    if (lista.length == 1) {
+
+      (elem, idx)
+    } else {
+
+      if (elem != 0) (elem, idx) else buscar_lleno (lista.tail, idx + 1)
+    }
+  }
+
+  /**
+   * Realiza la suma del número de huecos (posiciones a 0) en la lista.
+   */
+  def contar_huecos (lista: List [Any]): Int = {
+
+    if (lista.length == 0) {
+
+      0
+    } else {
+
+      if (lista.head == 0) 1 + contar_huecos (lista.tail) else contar_huecos (lista.tail)
     }
   }
 
@@ -364,50 +523,26 @@ object Main {
     /* Elige la opción adecuada en función del movimiento */
     movimiento match {
       /* Arriba */
-      case 0 => cambiar (estado._2
-                        , (elemento._1 * partida.columnas) + elemento._2
-                        , ((elemento._1 - 1) * partida.columnas) + elemento._2
+      case 0 => Utils.cambiar (estado._2
+                              , (elemento._1 * partida.columnas) + elemento._2
+                              , ((elemento._1 - 1) * partida.columnas) + elemento._2
                 )
       /* Abajo */
-      case 1 => cambiar (estado._2
-                        , (elemento._1 * partida.columnas) + elemento._2
-                        , ((elemento._1 + 1) * partida.columnas) + elemento._2
+      case 1 => Utils.cambiar (estado._2
+                              , (elemento._1 * partida.columnas) + elemento._2
+                              , ((elemento._1 + 1) * partida.columnas) + elemento._2
                 )
       /* Derecha */
-      case 2 => cambiar (estado._2
-                        , (elemento._1 * partida.columnas) + elemento._2
-                        , (elemento._1 * partida.columnas) + elemento._2 + 1
+      case 2 => Utils.cambiar (estado._2
+                              , (elemento._1 * partida.columnas) + elemento._2
+                              , (elemento._1 * partida.columnas) + elemento._2 + 1
                 )
       /* Izquierda */
-      case 3 => cambiar (estado._2
-                        , (elemento._1 * partida.columnas) + elemento._2
-                        , (elemento._1 * partida.columnas) + elemento._2 - 1
+      case 3 => Utils.cambiar (estado._2
+                              , (elemento._1 * partida.columnas) + elemento._2
+                              , (elemento._1 * partida.columnas) + elemento._2 - 1
                 )
     }
-  }
-
-  /**
-   * Cambia el primer elemento por el segundo en la lista especificada.
-   *
-   * @param lista
-   *          Lista en la que se van a intercambiar los elementos
-   *
-   * @param pos_1
-   *          Primera posición a intercambiar (fila, columna)
-   *
-   * @param pos_2
-   *          Segunda posición a intercambiar (fila, columna)
-   *
-   *
-   * @return
-   *          Lista con los elementos intercambiados.
-   */
-  def cambiar (lista: List [Any], pos_1: Int, pos_2: Int): List [Any] = {
-
-    val elem_1 = lista (pos_1)
-    val elem_2 = lista (pos_2)
-
-    Utils.insertar (elem_2, pos_1, Utils.insertar (elem_1, pos_2, lista))
   }
 
 }
