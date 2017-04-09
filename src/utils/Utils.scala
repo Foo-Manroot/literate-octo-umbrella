@@ -102,8 +102,13 @@ object Utils {
    */
   def crear_lista (n: Int): List [Int] = {
 
-    if (n <= 0) Nil else (util.Random.nextInt (7) + 1)::crear_lista (n - 1)
+    if (n <= 0) Nil else crear_diamante::crear_lista (n - 1)
   }
+
+  /**
+   * Crea un nuevo diamante con valor aleatorio entre 1 y 8
+   */
+  def crear_diamante: Int = (util.Random.nextInt (7) + 1)
 
 
   /**
@@ -337,9 +342,18 @@ object Utils {
   
       Nil
     } else {
-  
-      op (lista.head, contador)::mapear_indexado (lista.tail, contador + 1) {op}
+
+      val res = op (lista.head, contador)
+
+      if (res != null) {
+
+        res::mapear_indexado (lista.tail, contador + 1) {op}
+      } else {
+
+        mapear_indexado (lista.tail, contador + 1) {op}
+      }
     }
+
   }
 
 }
