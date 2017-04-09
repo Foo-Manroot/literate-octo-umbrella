@@ -60,11 +60,32 @@ object Main {
                                   , estado
                             )
 
-        partida.imprimir_matriz (comprobar_matriz (partida, l))
-
+        partida.imprimir_matriz (eliminar (l, comprobar_matriz (partida, l)))
       }
       case 2 => guardar (partida, estado); menú (partida, estado)
       case _ => println ("Opción no reconocida")
+    }
+  }
+
+  /**
+   * Elimina de la primera matriz los elementos marcados en la segunda.
+   *
+   * @param lista
+   *          Lista con los elementos a ser eliminados (se sustiuyen por 0)
+   *
+   * @param marcadores
+   *          Lista de booleanos con los elementos a eliminar puestos a "true"
+   *
+   *
+   * @return
+   *          Una nueva lista con un 0 en las posiciones marcadas.
+   */
+  def eliminar (lista: List [Any], marcadores: List [Boolean]): List [Any] = {
+
+    val long = marcadores.length
+
+    Utils.mapear_indexado (lista) {
+      (e, i) => if ((i < long) && marcadores (i)) 0 else e
     }
   }
 
