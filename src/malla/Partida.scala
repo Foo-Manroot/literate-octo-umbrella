@@ -11,7 +11,7 @@ import utils.Utils
  * @param dim_filas
  *        Nº de filas que debe tener la matriz de juego.
  *
- * @param dim_cols 
+ * @param dim_cols
  *        Nº de columnas que debe tener la matriz de juego.
  *
  * @param niv

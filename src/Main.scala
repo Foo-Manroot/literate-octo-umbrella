@@ -8,7 +8,7 @@ import malla.Partida
 object Main {
 
   val msg_menú = "1) Realizar movimiento\n" +
-                 "2) Guardar\n" + 
+                 "2) Guardar\n" +
                  "0) Salir\n"
 
   val msg_mov  = "\t0: Arriba\n" +
