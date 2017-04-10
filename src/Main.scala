@@ -10,6 +10,7 @@ object Main {
   val msg_menú = "1) Realizar movimiento\n" +
                  "2) Guardar\n" +
                  "3) Cargar\n" +
+                 "4) Comprobar huecos\n" +
                  "0) Salir\n"
 
   val msg_mov  = "\t0: Arriba\n" +
@@ -44,14 +45,12 @@ object Main {
    */
   def menú (partida: Partida, estado: (Int, List [Any])): Unit = {
 
-    println ("*******\n" +
-             "Puntos: " + estado._1 + "\n")
-    partida.imprimir_matriz (estado._2);
+    eliminar_coicidencias(partida,estado)
 
     print (msg_menú +
            "--> Introduzca la opción seleccionada: ")
 
-    Utils.pedir_opción (0, 3) match {
+    Utils.pedir_opción (0, 4) match {
       /* Salir */
       case 0 => println (" ---- FIN ---- "); sys.exit (0)
       /* Mover */
@@ -73,8 +72,36 @@ object Main {
         }
       }
 
+      case 4 => menú(partida,eliminar_coicidencias(partida,estado))
+
       case _ => println ("Opción no reconocida")
     }
+  }
+
+  /*Elimina las conincidencias cuando no se realiza ninguna operacion*/
+  def eliminar_coicidencias (partida: Partida, estado: (Int,List[Any])): (Int, List [Any])= {
+
+    val matriz = eliminar (estado._2, comprobar_matriz (partida, estado._2))
+
+    println ("*******\n" +
+              "Puntos: " + estado._1 + "\n")
+    partida.imprimir_matriz (estado._2);
+
+    if (contiene_elemento(0,matriz)){
+
+      println (" ---- \n" +
+               "Huecos: ")
+      partida.imprimir_matriz (matriz)
+      println (" ---- ")
+
+      val matriz_sig = tratar_huecos (partida, matriz)
+      val puntos = estado._1 + contar_huecos (matriz)
+
+      eliminar_coicidencias (partida, (puntos, matriz_sig) )
+    }
+    else
+      (estado._1,estado._2)
+
   }
 
   /**
@@ -96,22 +123,33 @@ object Main {
   def movimiento (partida: Partida, estado: (Int, List [Any])): (Int, List [Any]) = {
 
       val pos: (Int, Int) = pedir_pos (partida)
-      val l: List [Any] = mover (pos
-                                , partida
-                                , pedir_mov (pos, partida)
-                                , estado
-                          )
+      val mov = pedir_mov(pos,partida)
 
-      val huecos: List [Any] = eliminar (l, comprobar_matriz (partida, l))
-      val puntos: Int = (estado._1 + contar_huecos (huecos))
+      /*Valida el movimiento*/
+      if(mov_valido(pos,partida,mov,estado)){
 
-      val nueva_matriz: List [Any] = tratar_huecos (partida, huecos)
+        val l: List [Any] = mover (pos
+                                  , partida
+                                  , mov
+                                  , estado
+                            )
 
-      println ("Huecos: ")
-      partida.imprimir_matriz (huecos)
-      println (" ---- ")
+        val huecos: List [Any] = eliminar (l, comprobar_matriz (partida, l))
+        val puntos: Int = (estado._1 + contar_huecos (huecos))
 
-      (puntos, nueva_matriz)
+        val nueva_matriz: List [Any] = tratar_huecos (partida, huecos)
+
+        println (" ---- ")
+        println ("Huecos: ")
+        partida.imprimir_matriz (huecos)
+        println (" ---- ")
+
+        (puntos, nueva_matriz)
+    } else {
+
+      println("Este movimiento no es valido\n")
+      (estado._1,estado._2)
+    }
   }
 
   /**
@@ -493,6 +531,52 @@ object Main {
       Utils.log_error ("Ese movimiento no es posible")
       pedir_mov (pieza, partida)
     }
+  }
+
+ /**
+  * Valida si el movimiento genera una coincidencia de 3 o mas
+  *
+  * @param pieza
+  *          Pieza que se desea mover
+  *
+  * @param partida
+  *          Objeto con la información del juego
+  *
+  * @param estado
+  *          Tupla con la puntuación y la matriz de juego (en ese orden)
+  *
+  * @param movimiento
+  *          Movimiento que se desea realizar, siendo un valor de los siguientes:
+  *            0 - Arriba
+  *            1 - Abajo
+  *            2 - Derecha
+  *            3 - Izquierda
+  *
+  *
+  * @return
+  *          Una lista con los elementos cambiados
+  */
+  def mov_valido(elemento: (Int, Int)
+             , partida: Partida
+             , movimiento: Int
+             , estado: (Int, List [Any])): Boolean= {
+
+    val matriz_mov = mover(elemento,partida,movimiento,estado)
+    val matriz_huecos: List [Any] = eliminar(matriz_mov, comprobar_matriz(partida,matriz_mov))
+
+    contiene_elemento(0,matriz_huecos)
+  }
+
+  /*Devuelve si contiene el elemento*/
+  def contiene_elemento(elemento: Any,lista: List[Any]): Boolean = {
+
+    if(lista.length < 1)
+       false
+    else
+       if(lista.head == elemento)
+         true
+       else
+         contiene_elemento(elemento,lista.tail)
   }
 
   /**
