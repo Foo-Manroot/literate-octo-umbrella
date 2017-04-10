@@ -1,7 +1,9 @@
 /* -------------------------------------------------------- */
 /* Funciones principales del juego                          */
 /* -------------------------------------------------------- */
+
 import utils._
+//import partida._
 import malla.Partida
 
 
@@ -448,7 +450,7 @@ object Main {
       p => p.println (partida.toString (estado))
     }
 
-    println ("\nDatos guardados\n")
+    println ("\nDatos guardados \n")
   }
 
 
@@ -668,5 +670,4 @@ object Main {
                 )
     }
   }
-
 }
