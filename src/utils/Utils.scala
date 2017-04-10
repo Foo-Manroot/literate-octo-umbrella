@@ -393,7 +393,51 @@ object Utils {
   }
 
   /**
-   * Implementeación propia de map. Aplica la operación "op" a cada elemento de la lista.
+   * Carga los datos de una partida que estén guardados en el fichero especificado.
+   *
+   * @param archivo
+   *          Nombre del archivo que se desea cargar.
+   *
+   *
+   * @return
+   *          Una tupla con la información de la partida (en un objeto de tipo Partida),
+   *        los puntos y la matriz de juego (en ese orden).
+   */
+  def cargar_partida (archivo: String): (Partida, Int, List [Any]) = {
+
+    if (new java.io.File (archivo).exists ()) {
+
+      val datos = scala.io.Source.fromFile (archivo)
+      val lista = try datos.getLines.toList finally datos.close ()
+
+      /* Organización del archivo (con sus índices en la lista):
+       *  0 -> Filas
+       *  1 -> Columnas
+       *  2 -> Nivel
+       *  3 -> Puntuación
+       *  4 -> Matriz de juego
+       */
+      val filas: Int = lista (0).filter (c => Character.isDigit (c)).toInt
+      val columnas: Int = lista (1).filter (c => Character.isDigit (c)).toInt
+
+      val nivel: Int = lista (2).filter (c => Character.isDigit (c)).toInt
+      val puntos: Int = lista (3).filter (c => Character.isDigit (c)).toInt
+
+      val matriz: List [Any] = mapear (lista (4).toList) {
+
+        e => if (e == ' ') null else e
+      }
+      val matriz_enteros = mapear (matriz) {case e: Char => e.asDigit}
+
+      (new Partida (filas, columnas, nivel), puntos, matriz_enteros)
+    } else {
+
+      (null, null.asInstanceOf [Int], null)
+    }
+  }
+
+  /**
+   * Implementación propia de map. Aplica la operación "op" a cada elemento de la lista.
    *
    * @param lista
    *          Lista a la que se le debe aplicar la operación.
@@ -413,13 +457,15 @@ object Utils {
       Nil
     } else {
 
-      op (lista.head)::mapear (lista.tail) {op}
+      val res = op (lista.head)
+
+      if (res != null) res::mapear (lista.tail) {op} else mapear (lista.tail) {op}
     }
   }
 
 
   /**
-   * Implementeación propia de map, pero usando índices. Aplica la operación "op"
+   * Implementación propia de map, pero usando índices. Aplica la operación "op"
    * a cada elemento de la lista.
    *
    * @param lista

@@ -9,6 +9,7 @@ object Main {
 
   val msg_menú = "1) Realizar movimiento\n" +
                  "2) Guardar\n" +
+                 "3) Cargar\n" +
                  "0) Salir\n"
 
   val msg_mov  = "\t0: Arriba\n" +
@@ -50,13 +51,27 @@ object Main {
     print (msg_menú +
            "--> Introduzca la opción seleccionada: ")
 
-    Utils.pedir_opción (0, 2) match {
-
+    Utils.pedir_opción (0, 3) match {
+      /* Salir */
       case 0 => println (" ---- FIN ---- "); sys.exit (0)
-
+      /* Mover */
       case 1 => menú (partida, movimiento (partida, estado))
-
+      /* Guardar */
       case 2 => guardar (partida, estado); menú (partida, estado)
+      /* Cargar */
+      case 3 => {
+
+        val datos = cargar
+
+        if (datos == (null, null.asInstanceOf [Int], null)) {
+
+          menú (partida, estado)
+        } else {
+
+          println ("\n---- Nueva partida ----\n")
+          menú (datos._1, (datos._2, datos._3))
+        }
+      }
 
       case _ => println ("Opción no reconocida")
     }
@@ -395,9 +410,34 @@ object Main {
       p => p.println (partida.toString (estado))
     }
 
-    println ("\nArchivo guardado con éxito \n")
+    println ("\nDatos guardados\n")
   }
 
+
+  /**
+   * Carga una partida que estuviera guardada en un archivo.
+   *
+   * @return
+   *          Una tupla con la información de la partida (en un objeto de tipo Partida),
+   *        los puntos y la matriz de juego (en ese orden).
+   */
+  def cargar: (Partida, Int, List [Any]) = {
+
+    print (" --> Introduzca el nombre del archivo del que cargar los datos: ")
+    val nombre = scala.io.StdIn.readLine ()
+
+    val datos = Utils.cargar_partida (nombre)
+
+    if (datos == (null, null.asInstanceOf [Int], null)) {
+
+      println ("\nError al cargar los datos. Compruebe el nombre del fichero.\n")
+    } else {
+
+      println ("\nDatos cargados\n")
+    }
+
+    datos
+  }
 
   /**
    * Pide la información necesaria para realizar el movimiento y la devuelve
