@@ -1,15 +1,16 @@
 /* -------------------------------------------------------- */
 /* Funciones principales del juego                          */
 /* -------------------------------------------------------- */
+//package main
+
 import utils._
-import malla.Partida
+import partida._
 
 
 object Main {
 
   val msg_menú = "1) Realizar movimiento\n" +
                  "2) Guardar\n" +
-                 "3) Cargar\n" +
                  "0) Salir\n"
 
   val msg_mov  = "\t0: Arriba\n" +
@@ -44,39 +45,50 @@ object Main {
    */
   def menú (partida: Partida, estado: (Int, List [Any])): Unit = {
 
-    println ("*******\n" +
-             "Puntos: " + estado._1 + "\n")
-    partida.imprimir_matriz (estado._2);
+    eliminar_coicidencias(partida,estado)
 
     print (msg_menú +
            "--> Introduzca la opción seleccionada: ")
 
     Utils.pedir_opción (0, 3) match {
-      /* Salir */
+
       case 0 => println (" ---- FIN ---- "); sys.exit (0)
-      /* Mover */
+
       case 1 => menú (partida, movimiento (partida, estado))
-      /* Guardar */
+
       case 2 => guardar (partida, estado); menú (partida, estado)
-      /* Cargar */
-      case 3 => {
 
-        val datos = cargar
-
-        if (datos == (null, null.asInstanceOf [Int], null)) {
-
-          menú (partida, estado)
-        } else {
-
-          println ("\n---- Nueva partida ----\n")
-          menú (datos._1, (datos._2, datos._3))
-        }
-      }
-
+      case 3 => menú(partida,eliminar_coicidencias(partida,estado))
+      
       case _ => println ("Opción no reconocida")
     }
   }
 
+  /*Elimina las conincidencias cuando no se realiza ninguna operacion*/
+ def eliminar_coicidencias (partida: Partida, estado: (Int,List[Any])): (Int, List [Any])= {
+   
+   val matriz = eliminar(estado._2,comprobar_matriz(partida,estado._2))
+   
+   println ("*******\n" +
+             "Puntos: " + estado._1 + "\n")
+   partida.imprimir_matriz (estado._2);
+   
+   if (contiene_elemento(0,matriz)){
+     
+    println (" ---- ")
+    println (partida.imprimir_matriz(matriz))
+       
+     
+     val matriz_sig = tratar_huecos(partida,matriz)
+     val puntos = estado._1 + contar_huecos(matriz)
+     
+     eliminar_coicidencias(partida,(puntos,matriz_sig))
+   }
+   else
+     (estado._1,estado._2)
+     
+   
+ }
   /**
    * Función principal para pedir por teclado los datos del movimiento y, tras
    * intercambiar los elementos, realizar las comprobaciones necesarias (tratando los
@@ -96,22 +108,32 @@ object Main {
   def movimiento (partida: Partida, estado: (Int, List [Any])): (Int, List [Any]) = {
 
       val pos: (Int, Int) = pedir_pos (partida)
-      val l: List [Any] = mover (pos
+      val mov = pedir_mov(pos,partida)
+      
+      /*Valida el movimiento*/
+      if(mov_valido(pos,partida,mov,estado)){
+        
+        val l: List [Any] = mover (pos
                                 , partida
-                                , pedir_mov (pos, partida)
+                                , mov
                                 , estado
                           )
 
-      val huecos: List [Any] = eliminar (l, comprobar_matriz (partida, l))
-      val puntos: Int = (estado._1 + contar_huecos (huecos))
+        val huecos: List [Any] = eliminar (l, comprobar_matriz (partida, l))
+        val puntos: Int = (estado._1 + contar_huecos (huecos))
 
-      val nueva_matriz: List [Any] = tratar_huecos (partida, huecos)
-
-      println ("Huecos: ")
-      partida.imprimir_matriz (huecos)
-      println (" ---- ")
-
-      (puntos, nueva_matriz)
+        val nueva_matriz: List [Any] = tratar_huecos (partida, huecos)
+        
+        println ("Huecos: ")
+        partida.imprimir_matriz (huecos)
+        println (" ---- ")
+        (puntos, nueva_matriz)
+      }else{
+        
+        println("Este movimiento no es valido\n")
+        (estado._1,estado._2)
+      }
+       
   }
 
   /**
@@ -410,34 +432,9 @@ object Main {
       p => p.println (partida.toString (estado))
     }
 
-    println ("\nDatos guardados\n")
+    println ("\nArchivo guardado con éxito \n")
   }
 
-
-  /**
-   * Carga una partida que estuviera guardada en un archivo.
-   *
-   * @return
-   *          Una tupla con la información de la partida (en un objeto de tipo Partida),
-   *        los puntos y la matriz de juego (en ese orden).
-   */
-  def cargar: (Partida, Int, List [Any]) = {
-
-    print (" --> Introduzca el nombre del archivo del que cargar los datos: ")
-    val nombre = scala.io.StdIn.readLine ()
-
-    val datos = Utils.cargar_partida (nombre)
-
-    if (datos == (null, null.asInstanceOf [Int], null)) {
-
-      println ("\nError al cargar los datos. Compruebe el nombre del fichero.\n")
-    } else {
-
-      println ("\nDatos cargados\n")
-    }
-
-    datos
-  }
 
   /**
    * Pide la información necesaria para realizar el movimiento y la devuelve
@@ -530,7 +527,51 @@ object Main {
     }
 
   }
-
+ /**
+   * Valida si el movimiento genera una coincidencia de 3 o mas
+   *
+   * @param pieza
+   *          Pieza que se desea mover
+   *
+   * @param partida
+   *          Objeto con la información del juego
+   *
+   * @param estado
+   *          Tupla con la puntuación y la matriz de juego (en ese orden)
+   *
+   * @param movimiento
+   *          Movimiento que se desea realizar, siendo un valor de los siguientes:
+   *            0 - Arriba
+   *            1 - Abajo
+   *            2 - Derecha
+   *            3 - Izquierda
+   *
+   *
+   * @return
+   *          Una lista con los elementos cambiados
+   */
+  def mov_valido(elemento: (Int, Int)
+            , partida: Partida
+            , movimiento: Int
+            , estado: (Int, List [Any])): Boolean= {
+    
+    val matriz_mov = mover(elemento,partida,movimiento,estado)
+    val matriz_huecos: List [Any] = eliminar(matriz_mov, comprobar_matriz(partida,matriz_mov))
+    
+    contiene_elemento(0,matriz_huecos)
+  }
+  
+  /*Devuelve si contiene el elemento*/
+  def contiene_elemento(elemento: Any,lista: List[Any]): Boolean = {
+    
+    if(lista.length < 1)
+       false
+    else 
+       if(lista.head == elemento)   
+         true
+       else
+         contiene_elemento(elemento,lista.tail)
+  }
   /**
    * Crea una nueva lista cambiado el elemento a mover con su vecino (arriba, abajo,
    * derecha o izquierda)
@@ -583,6 +624,5 @@ object Main {
                               , (elemento._1 * partida.columnas) + elemento._2 - 1
                 )
     }
-  }
-
+  } 
 }
