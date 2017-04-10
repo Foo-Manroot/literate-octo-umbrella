@@ -45,7 +45,7 @@ object Main {
    */
   def menú (partida: Partida, estado: (Int, List [Any])): Unit = {
 
-    eliminar_coicidencias(partida,estado)
+    val nuevo_estado = eliminar_coicidencias (partida, estado)
 
     print (msg_menú +
            "--> Introduzca la opción seleccionada: ")
@@ -54,9 +54,9 @@ object Main {
       /* Salir */
       case 0 => println (" ---- FIN ---- "); sys.exit (0)
       /* Mover */
-      case 1 => menú (partida, movimiento (partida, estado))
+      case 1 => menú (partida, movimiento (partida, nuevo_estado))
       /* Guardar */
-      case 2 => guardar (partida, estado); menú (partida, estado)
+      case 2 => guardar (partida, nuevo_estado); menú (partida, nuevo_estado)
       /* Cargar */
       case 3 => {
 
@@ -64,7 +64,7 @@ object Main {
 
         if (datos == (null, null.asInstanceOf [Int], null)) {
 
-          menú (partida, estado)
+          menú (partida, nuevo_estado)
         } else {
 
           println ("\n---- Nueva partida ----\n")
@@ -72,7 +72,7 @@ object Main {
         }
       }
 
-      case 4 => menú(partida,eliminar_coicidencias(partida,estado))
+      case 4 => menú (partida, eliminar_coicidencias (partida, nuevo_estado))
 
       case _ => println ("Opción no reconocida")
     }
