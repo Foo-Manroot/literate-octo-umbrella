@@ -97,18 +97,36 @@ object Utils {
    * @param n
    *          Número de elementos a crear
    *
+   * @param nivel
+   *          Nivel del juego para limitar el rango de los diamantes a crear
+   *
    * @return
    *          Lista con los elementos
    */
-  def crear_lista (n: Int): List [Int] = {
+  def crear_lista (n: Int, nivel: Int): List [Int] = {
 
-    if (n <= 0) Nil else crear_diamante::crear_lista (n - 1)
+    if (n <= 0) Nil else crear_diamante (nivel)::crear_lista (n - 1, nivel)
   }
 
   /**
-   * Crea un nuevo diamante con valor aleatorio entre 1 y 8
+   * Crea un nuevo diamante con valor aleatorio según el nivel
+   *
+   * @param nivel
+   *          Nivel de juego que se va a usar para limitar el rango del diamante a crear
+   *
+   * @return
+   *          Un entero para representar un diamante
    */
-  def crear_diamante: Int = (util.Random.nextInt (7) + 1)
+  def crear_diamante (nivel: Int): Int = {
+
+    nivel match {
+
+      case 1 => (util.Random.nextInt (4) + 1)
+      case 2 => (util.Random.nextInt (5) + 1)
+      case 3 => (util.Random.nextInt (7) + 1)
+      case _ => (util.Random.nextInt (7) + 1)
+    }
+  }
 
 
   /**

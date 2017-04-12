@@ -29,7 +29,7 @@ object Main {
   def main (args: Array[String]) {
 
     val partida: Partida = Utils.obtener_args (args)
-    val l = Utils.crear_lista (partida.filas * partida.columnas)
+    val l = Utils.crear_lista (partida.filas * partida.columnas, partida.nivel)
 
     menú (partida, (0, l))
   }
@@ -181,7 +181,11 @@ object Main {
 
         val lista_col = Utils.obtener_col (partida, lista, col)
 
-        val salida = Utils.invertir (tratar_col (Utils.invertir (lista_col)))
+        val salida =  Utils.invertir (
+                        tratar_col (Utils.invertir (lista_col)
+                                    , partida.nivel
+                        )
+                      )
 
         val matriz = Utils.insertar_col (partida, lista, col, salida)
 
@@ -194,23 +198,36 @@ object Main {
 
   /**
    * Rellena los huecos que pudiera haber en la columna pasada como argumento.
+   *
+   * @param columna
+   *          Lista con la columna cuyos huecos se deben rellenar. Debe estar en el
+   *        orden inverso (es decir, primero el elemento más bajo en la matriz).
+   *
+   * @param nivel
+   *          Nivel del juego para limitar el rango de los diamantes a
+   *        crear si es necesario
+   *
+   *
+   * @return
+   *          Una nueva lista con la nueva columna, en orden inverso (es decir, la parte
+   *        baja de la columna está al principio de la lista devuelta)
    */
-  def tratar_col (columna: List [Any]): List [Any] = {
+  def tratar_col (columna: List [Any], nivel: Int): List [Any] = {
 
     val elem = columna.head
 
     if (columna.length == 1) {
 
-      if (elem == 0) Utils.crear_diamante::Nil else elem::Nil
+      if (elem == 0) Utils.crear_diamante (nivel)::Nil else elem::Nil
     } else {
 
       if (elem == 0) {
 
-        val cambiado: List [Any] = subir_diamante (columna)
-        cambiado.head::tratar_col (cambiado.tail)
+        val cambiado: List [Any] = subir_diamante (columna, nivel)
+        cambiado.head::tratar_col (cambiado.tail, nivel)
       } else {
 
-        elem::tratar_col (columna.tail)
+        elem::tratar_col (columna.tail, nivel)
       }
     }
   }
@@ -222,17 +239,19 @@ object Main {
    * @param columna
    *          Lista con el contenido de la columna a tratar.
    *
+   * @param nivel
+   *          Nivel del juego para limitar el rango de los diamantes a crear
    *
    * @return
    *          Una nueva lista con el hueco rellenado.
    */
-  def subir_diamante (columna: List [Any]): List [Any] = {
+  def subir_diamante (columna: List [Any], nivel: Int): List [Any] = {
 
     val lleno: (Any, Int) = buscar_lleno (columna)
 
     if (lleno._1 == 0) {
 
-      Utils.crear_diamante::columna.tail
+      Utils.crear_diamante (nivel)::columna.tail
     } else {
 
       Utils.cambiar (columna, 0, lleno._2)
