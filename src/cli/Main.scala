@@ -3,8 +3,8 @@
 /* -------------------------------------------------------- */
 
 import utils._
-//import partida._
 import malla.Partida
+
 
 
 object Main {
@@ -13,6 +13,7 @@ object Main {
                  "2) Guardar\n" +
                  "3) Cargar\n" +
                  "4) Comprobar huecos\n" +
+                 "5) Estrategia óptima\n" +
                  "0) Salir\n"
 
   val msg_mov  = "\t0: Arriba\n" +
@@ -52,7 +53,7 @@ object Main {
     print (msg_menú +
            "--> Introduzca la opción seleccionada: ")
 
-    Utils.pedir_opción (0, 4) match {
+    Utils.pedir_opción (0, 5) match {
       /* Salir */
       case 0 => println (" ---- FIN ---- "); sys.exit (0)
       /* Mover */
@@ -76,6 +77,8 @@ object Main {
 
       case 4 => menú (partida, eliminar_coicidencias (partida, nuevo_estado))
 
+      case 5 => menú(partida,estrategia_optima(partida,nuevo_estado))
+      
       case _ => println ("Opción no reconocida")
     }
   }
@@ -198,7 +201,7 @@ object Main {
 
   /**
    * Rellena los huecos que pudiera haber en la columna pasada como argumento.
-   *
+   **
    * @param columna
    *          Lista con la columna cuyos huecos se deben rellenar. Debe estar en el
    *        orden inverso (es decir, primero el elemento más bajo en la matriz).
@@ -557,7 +560,7 @@ object Main {
  /**
   * Valida si el movimiento genera una coincidencia de 3 o mas
   *
-  * @param pieza
+  * @param elemento
   *          Pieza que se desea mover
   *
   * @param partida
@@ -575,7 +578,7 @@ object Main {
   *
   *
   * @return
-  *          Una lista con los elementos cambiados
+  *         Devuelve True si valido y False si no lo es
   */
   def mov_valido(elemento: (Int, Int)
              , partida: Partida
@@ -688,5 +691,160 @@ object Main {
                               , (elemento._1 * partida.columnas) + elemento._2 - 1
                 )
     }
+  }
+
+  /**
+   *Busca el movimiento optimo en una posicion dada
+   *
+   * @param elemento
+   *          Pieza que se desea mover
+   *
+   * @param partida
+   *          Objeto con la información del juego
+   *
+   * @param estado
+   *          Tupla con la puntuación y la matriz de juego (en ese orden)
+   *
+   * @param movimiento
+   *          Movimiento que se desea realizar, siendo un valor de los siguientes:
+   *            0 - Arriba
+   *            1 - Abajo
+   *            2 - Derecha
+   *            3 - Izquierda
+   *
+   * @param eliminados 
+   * 					Numero de diamantes eliminados
+   * 
+   * @param movimientof
+   * 						
+   *
+   * @return
+   *          Devuelve: Posicion del diamante, movimiento a realizar y el numero de 
+   *          diamantes que se eliminan
+   */
+  def buscar_mov_optimo(elemento: (Int, Int)
+            , partida: Partida
+            , movimiento: Int
+            , estado: (Int, List [Any])
+            , eliminados: Int
+            , movimientof: Int):((Int,Int),Int,Int) = {
+    
+    if (movimiento > 3)
+      (elemento,movimientof,eliminados)
+    else{
+      if(/*mov_valido(elemento,partida,movimiento,estado) &&*/ (mov_posible(elemento,partida,movimiento))){
+        
+        val mov = mover(elemento,partida,movimiento,estado)
+        val hue = eliminar (mov, comprobar_matriz (partida, mov))
+        val eli = contar_huecos(hue)
+        
+        //Si elimina mas elementos se cambia
+        if(eli > eliminados)
+          buscar_mov_optimo(elemento,partida,movimiento+1,estado,eli,movimiento)
+        else
+          buscar_mov_optimo(elemento,partida,movimiento+1,estado,eliminados,movimientof)
+        
+      }else
+        buscar_mov_optimo(elemento,partida,movimiento+1,estado,eliminados,movimientof)
+    }
+    
+  }
+  
+  /**
+   *Recorre la lsita buscando la jugada optima
+   *
+   * @param partida
+   *          Objeto con la información del juego
+   *
+   * @param estado
+   *          Tupla con la puntuación y la matriz de juego (en ese orden)
+   *
+   * @param contador 
+   * 					Indice para recorrer la lista
+   *
+   * @param eliminados 
+   * 					Numero de diamantes eliminados
+   * 
+   * @param elememntof
+   * 					Tupla con la posicion del elemento en el juego
+   * 
+   * @param movimientof
+   * 						
+   *
+   * @return
+   *          Devuelve: Posicion del diamante y movimiento a realizar 
+   */
+  def buscar_optimo(partida: Partida
+            , estado: (Int, List [Any])
+            , contador: Int
+            , elementof: (Int,Int)
+            , eliminados: Int
+            , movimientof: Int):((Int,Int),Int)= {
+    
+    val indice = estado._2.length - contador
+    
+    if(contador == 0)
+      //Devuelve el resultado final
+      
+      (elementof,movimientof)
+      
+    else{
+      val jugada : ((Int,Int),Int,Int) = buscar_mov_optimo(obtener_posicion(indice,partida)
+          ,partida,0,estado,0,0)
+      
+          //Caso: Encuentra una mejor jugada
+          if(jugada._3 > eliminados)
+            buscar_optimo(partida,estado,contador - 1,jugada._1,jugada._3,jugada._2)
+          //Caso: Mantine la jugada 
+          else
+            buscar_optimo(partida,estado,contador - 1,elementof,eliminados,movimientof)
+    }
+      
+     
+  }
+  
+   /**
+   *Realiza la jugada optima
+   *
+   * @param partida
+   *          Objeto con la información del juego
+   *
+   * @param estado
+   *          Tupla con la puntuación y la matriz de juego (en ese orden)
+   *
+   * @return
+   *          Devuelve una tupla con la puntuacion y el estado final de la lista
+   */
+  def estrategia_optima(partida: Partida, estado: (Int, List [Any])):(Int,List[Any]) ={
+    
+    val tam = estado._2.length
+    
+    val jugada: ((Int,Int),Int) = buscar_optimo(partida,estado,tam,(0,0),0,0)
+    
+    val l: List [Any] = mover (jugada._1
+                                  , partida
+                                  , jugada._2
+                                  , estado
+                            )
+
+        val huecos: List [Any] = eliminar (l, comprobar_matriz (partida, l))
+        val puntos: Int = (estado._1 + contar_huecos (huecos))
+
+        val nueva_matriz: List [Any] = tratar_huecos (partida, huecos)
+
+        println (" ---- ")
+        println ("Huecos: ")
+        partida.imprimir_matriz (huecos)
+        println (" ---- ")
+
+        (puntos, nueva_matriz)
+    
+    
+  }
+  /*Trnsforma la posicion de la lista en una posicion de la matriz*/
+  def obtener_posicion(indice: Int,partida: Partida):(Int, Int) = {
+    val col = indice % partida.columnas
+    val fila = (indice - col)/partida.columnas
+    (fila,col)
   }
 }
