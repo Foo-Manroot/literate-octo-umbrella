@@ -12,6 +12,7 @@ CP="$OUTDIR"			# Classpath
 ARGS=""				# Argumentos para el archivo final
 
 MAIN="Main"			# Nombre la clase principal
+EXCLUDE_DIR="./lib"		# Directorios a excluir de la compilación
 
 
 
@@ -37,6 +38,10 @@ Estando disponibles las siguientes opciones:
 		 Indica el directorio en el que se encuentran los archivos .lex y .cup
 		(si no se especifica nada, se toma por defecto el directorio actual).
 
+	-e
+	--exclude
+		 Excluye el directorio para la compilación. Por defecto, es ./lib
+
 	-h
 	--help
 		  Muestra esta ayuda y termina la ejecución
@@ -58,8 +63,8 @@ Estando disponibles las siguientes opciones:
 "
 
 # Opciones en formato corto y largo para getopt
-OP_CORTAS=ad:hlm:p:
-OP_LARGAS=args,dir:,help,limpiar,clean,main:,classpath:
+OP_CORTAS=ad:e:hlm:p:
+OP_LARGAS=args,dir:,exclude:,help,limpiar,clean,main:,classpath:
 
 # Función sin terminar para procesar las opciones a mano y malamente por si getopt falla
 args_a_mano ()
@@ -128,6 +133,11 @@ comprobar_args ()
 
 				shift 2;;
 
+			-e|--exclude)
+				EXCLUDE_DIR="$2"
+
+				shift 2;;
+
 			-l|--clean|--limpiar)
 				echo -e "-> Eliminando carpeta '$OUTDIR'"
 				rm -rfv "$DIR/$OUTDIR"
@@ -170,7 +180,8 @@ compilar ()
 
 	# Crea el archivo .class (redirecciona stderr a stdout
 	# y almacena la salida en una variable)
-	salida=$("$COMPIL" -cp "$CP" -d "$OUTDIR" $(find . -name '*.scala') 2>&1)
+	salida=$("$COMPIL" -cp "$CP" -d "$OUTDIR" $(find . -name '*.scala'\
+		-not -path "$EXCLUDE_DIR/*") 2>&1)
 
 	# Comprueba si hay errores
 	if [[ "$salida" =~ .error. ]]
