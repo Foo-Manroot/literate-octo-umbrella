@@ -12,7 +12,7 @@ CP="$OUTDIR"			# Classpath
 ARGS=""				# Argumentos para el archivo final
 
 MAIN="Main"			# Nombre la clase principal
-EXCLUDE_DIR="./lib"		# Directorios a excluir de la compilación
+EXCLUDE_DIR=""			# Directorios a excluir de la copia de archivos
 
 
 
@@ -40,7 +40,7 @@ Estando disponibles las siguientes opciones:
 
 	-e
 	--exclude
-		 Excluye el directorio para la compilación. Por defecto, es ./lib
+		 Excluye el directorio para la compilación.
 
 	-h
 	--help
