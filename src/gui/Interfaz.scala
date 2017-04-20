@@ -67,18 +67,65 @@ class Interfaz extends JFrame("Jewels Legend Hero") {
         Console println "Hello world" 
     }
    */
+    println ("----\nPuntos: " + estado_ini._1 + "\n----")
+
     val panel: JPanel = new JPanel()
     panel.setSize(columnas * 50,filas * 50)
     panel.setLayout (new GridLayout (filas, columnas))
 
     Utils.mapear (crear_lista_botones (estado, panel, partida)) { b => panel.add (b) }
+    key_bindings (panel, partida)
 
     this.setContentPane(panel)
- 
-   
+
     setSize(50 + columnas * 50,50 + filas * 60)
     setVisible(true);
     setResizable (false)
+  }
+
+  /**
+   * Comportamiento de las teclas para tareas auxiliares:
+   *  Q -> Salir
+   *  G -> Guardar
+   *  C -> Comprobar huecos
+   *  E -> Estrategia óptima
+   */
+  def key_bindings (panel: JPanel, partida: Partida) = {
+
+    this.getInputMap ().clear ()
+    this.getActionMap ().clear ()
+    /* Teclas */
+    this.getInputMap ().put (KeyStroke.getKeyStroke ("Q"), "Salir");
+    this.getInputMap ().put (KeyStroke.getKeyStroke ("G"), "Guardar");
+    this.getInputMap ().put (KeyStroke.getKeyStroke ("C"), "Comprobar");
+    this.getInputMap ().put (KeyStroke.getKeyStroke ("E"), "Estrategia");
+    /* Acciones */
+    this.getActionMap ().put ("Salir", new AbstractAction () {
+
+      def actionPerformed (e: ActionEvent) { sys.exit (0) }
+    });
+    this.getActionMap ().put ("Guardar", new AbstractAction () {
+
+      def actionPerformed (e: ActionEvent) { 
+        Utils.toFile (new java.io.File ("partida.txt")) {
+          p => p.println (partida.toString (estado))
+        }
+      }
+    });
+    this.getActionMap ().put ("Comprobar", new AbstractAction () {
+
+      def actionPerformed (e: ActionEvent) {
+        val cambios = Main.eliminar_coicidencias (partida, estado)      
+        crear_ventana (partida, cambios)
+      }
+    });
+    this.getActionMap ().put ("Estrategia", new AbstractAction () {
+
+      def actionPerformed (e: ActionEvent) {
+        val cambios = Main.estrategia_optima (partida, estado)
+        crear_ventana (partida, cambios)
+      }
+    });
   }
 
   /**
@@ -161,7 +208,6 @@ class Interfaz extends JFrame("Jewels Legend Hero") {
   /**
    * Intercambia los dos elementos en la matriz de juego
    */
-  
   def intercambiar (idx_1: Int, idx_2: Int, partida: Partida) = {
 
     val mov = comprobar_mov (idx_1, idx_2, partida)
@@ -190,9 +236,10 @@ class Interfaz extends JFrame("Jewels Legend Hero") {
       
       
       estado = (puntos, nueva_matriz)
+    } else {     
+
+      crear_ventana(partida,estado)
     }
-     
-    crear_ventana(partida,estado)
     
   }
 
