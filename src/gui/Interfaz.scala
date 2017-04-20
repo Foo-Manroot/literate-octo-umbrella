@@ -37,12 +37,17 @@ class Interfaz extends JFrame("Jewels Legend Hero") {
   /* Color al pulsar un botón */
   val pulsado: Color = Color.BLACK
 
+  /* Estado del juego */
+  var estado: (Int, List [Any]) = _
 
-  def crear_ventana(partida: Partida, estado: (Int, List [Any])): Unit = {
+
+  def crear_ventana (partida: Partida, estado_ini: (Int, List [Any])): Unit = {
     
     //tamaño de diamante 50 * 50
     val filas = partida.filas
     val columnas = partida.columnas
+
+    estado = estado_ini
     
     setDefaultLookAndFeelDecorated(true) 
 
@@ -62,7 +67,7 @@ class Interfaz extends JFrame("Jewels Legend Hero") {
     val panel: JPanel = new JPanel()
     panel.setSize(columnas * 100, filas * 100)
 
-    Utils.mapear (crear_lista_botones (estado, panel)) { b => panel.add (b) }
+    Utils.mapear (crear_lista_botones (estado, panel, partida)) { b => panel.add (b) }
 
     this.setContentPane(panel)
     //pack /*No se que mierdas hace esto*/
@@ -72,23 +77,37 @@ class Interfaz extends JFrame("Jewels Legend Hero") {
     setResizable (false)
   }
 
-  /*Crea una lista con todos los botones*/
-  def crear_lista_botones(estado: (Int, List [Any]), panel: JPanel): List[JButton] = { 
-    
-   val boton = crear_boton(estado._2.head, panel)
+  /**
+   * Crea una lista con todos los botones
+   */
+  def crear_lista_botones (estado: (Int, List [Any])
+                          , panel: JPanel
+                          , partida: Partida): List[JButton] = { 
 
-   if(estado._2.length == 1) boton::Nil
+    val boton = crear_boton(estado._2.head, panel, partida)
 
-   else boton::crear_lista_botones((estado._1,estado._2.tail), panel)
+    if (estado._2.length == 1) {
+
+      boton::Nil
+    } else {
+
+      boton::crear_lista_botones((estado._1,estado._2.tail), panel, partida)
+    }
+
   }
 
-  /*Crea un boton segun el identificador*/
-  def crear_boton(id: Any, panel: JPanel): JButton = {
+  /**
+   * Crea un boton segun el identificador
+   */
+  def crear_boton (id: Any
+                  , panel: JPanel
+                  , partida: Partida): JButton = {
+
     val button = new JButton()
     button.setSize(50, 50)
 
     button.addActionListener (new ActionListener () {
-      def actionPerformed (e: ActionEvent) { controlador (e, panel, button) }
+      def actionPerformed (e: ActionEvent) { controlador (e, panel, button, partida) }
     })
 
     button.setBackground (color (id))
@@ -110,7 +129,10 @@ class Interfaz extends JFrame("Jewels Legend Hero") {
   /**
    * Controlador para el botón
    */
-  def controlador (e: ActionEvent, panel: JPanel, b: JButton) = {
+  def controlador (e: ActionEvent
+                  , panel: JPanel
+                  , b: JButton
+                  , partida: Partida) = {
 
     val componentes = panel.getComponents ().toList
     val idx_puls: Int = buscar_pulsado (componentes)
@@ -121,9 +143,31 @@ class Interfaz extends JFrame("Jewels Legend Hero") {
     } else {
 
       val idx = buscar_elem (componentes, b)
-      println ("Actual: " + idx + " - Pulsada: " + idx_puls)
+      intercambiar (idx, idx_puls, partida)
     }
 
+  }
+
+  /**
+   * Intercambia los dos elementos en la matriz de juego
+   */
+  def intercambiar (idx_1: Int, idx_2: Int, partida: Partida) = {
+
+    if (comprobar_mov (idx_1, idx_2, partida))
+      println ("asdf")
+  }
+
+  /**
+   * Comprueba que el movimiento es válido (es decir, que idx_1 está a 1 casilla de
+   * diferencia de idx_2)
+   */
+  def comprobar_mov (idx_1: Int, idx_2: Int, partida: Partida): Boolean = {
+
+    (
+      (math.abs (idx_1 - idx_2) == 1)
+      || ((idx_1 + partida.columnas) == idx_2)
+      || ((idx_1 - partida.columnas) == idx_2)
+    )
   }
 
   /**
