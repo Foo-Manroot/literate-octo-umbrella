@@ -4,7 +4,22 @@ import javax.swing._
 import java.awt.event._
 import JFrame._ 
 
-import partida._
+import malla.Partida
+import utils.Utils
+
+object GUI_main {
+
+  def main (args: Array [String]) {
+
+    val partida: Partida = Utils.obtener_args (args)
+    val l = Utils.crear_lista (partida.filas * partida.columnas, partida.nivel)
+
+    val ui = new Interfaz
+
+    ui.crear_ventana (partida, (0, l))
+  }
+
+}
 
 class Interfaz extends JFrame("Jewels Legend Hero") { 
   
@@ -24,8 +39,6 @@ class Interfaz extends JFrame("Jewels Legend Hero") {
     val filas = partida.filas
     val columnas = partida.columnas
     
-    
-    
     setDefaultLookAndFeelDecorated(true) 
 
     setDefaultCloseOperation(EXIT_ON_CLOSE) 
@@ -42,34 +55,37 @@ class Interfaz extends JFrame("Jewels Legend Hero") {
     }
    */
     val panel: JPanel = new JPanel()
-    panel.setSize(filas * 100, columnas * 100)
-    val boton = crear_boton(8)
-    
-    panel.add(boton)
-   
+    panel.setSize(columnas * 100, filas * 100)
+
+    Utils.mapear (crear_lista_botones (estado, panel)) { b => panel.add (b) }
+
     this.setContentPane(panel)
     //pack /*No se que mierdas hace esto*/
    
-    setSize(filas * 100, columnas * 100)
+    setSize(columnas * 100, filas * 100)
     setVisible(true);
+    setResizable (false)
   }
 
   /*Crea una lista con todos los botones*/
-  def crear_lista_botones(estado: (Int, List [Any])): List[JButton] = { 
+  def crear_lista_botones(estado: (Int, List [Any]), panel: JPanel): List[JButton] = { 
     
-   val boton = crear_boton(estado._2.head)
-   
-   if(estado._2.length == 1) boton::Nil   
-   
-   else boton::crear_lista_botones(estado._1,estado._2.tail)
-   
-   
-  
+   val boton = crear_boton(estado._2.head, panel)
+
+   if(estado._2.length == 1) boton::Nil
+
+   else boton::crear_lista_botones((estado._1,estado._2.tail), panel)
   }
+
   /*Crea un boton segun el identificador*/
-  def crear_boton(id: Any): JButton = {
+  def crear_boton(id: Any, panel: JPanel): JButton = {
     val button = new JButton()
-    button.setSize(100, 100)
+    button.setSize(50, 50)
+
+    button.addActionListener (new ActionListener () {
+      def actionPerformed (e: ActionEvent) { controlador (e, panel, button) }
+    })
+
     id match {
       case 1 => button.setIcon(azul);button
       case 2 => button.setIcon(rojo);button
@@ -82,4 +98,32 @@ class Interfaz extends JFrame("Jewels Legend Hero") {
       case _ => button.setIcon(vacio);button
     }
   }
-} 
+
+
+  /**
+   * Controlador para el botón
+   */
+  def controlador (e: ActionEvent, panel: JPanel, b: JButton) = {
+
+    println ("Botón pulsado - " + buscar_elem (panel.getComponents ().toList, b))
+  }
+
+
+  /**
+   * Busca el elemento en la lista y devuelve su índice
+   */
+  def buscar_elem (lista: List [Any], elem: Any, contador: Int = 0): Int = {
+
+    if (lista.isEmpty) {
+
+      -1
+    } else {
+
+      if (lista.head == elem)
+        contador
+      else
+        buscar_elem (lista.tail, elem, contador + 1)
+    }
+  }
+
+}
