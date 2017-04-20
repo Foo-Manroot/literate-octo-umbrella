@@ -1,6 +1,8 @@
 /* -------------------------------------------------------- */
 /* Funciones principales del juego                          */
 /* -------------------------------------------------------- */
+package main
+
 
 import utils._
 import malla.Partida

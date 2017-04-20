@@ -7,6 +7,7 @@ import JFrame._
 
 import malla.Partida
 import utils.Utils
+import main.Main
 
 object GUI_main {
 
@@ -65,14 +66,14 @@ class Interfaz extends JFrame("Jewels Legend Hero") {
     }
    */
     val panel: JPanel = new JPanel()
-    panel.setSize(columnas * 100, filas * 100)
+    panel.setSize(columnas * 50,filas * 50)
 
     Utils.mapear (crear_lista_botones (estado, panel, partida)) { b => panel.add (b) }
 
     this.setContentPane(panel)
     //pack /*No se que mierdas hace esto*/
    
-    setSize(columnas * 100, filas * 100)
+    setSize(50 + columnas * 50,50 + filas * 50)
     setVisible(true);
     setResizable (false)
   }
@@ -104,7 +105,7 @@ class Interfaz extends JFrame("Jewels Legend Hero") {
                   , partida: Partida): JButton = {
 
     val button = new JButton()
-    button.setSize(50, 50)
+    button.setSize(30, 30)
 
     button.addActionListener (new ActionListener () {
       def actionPerformed (e: ActionEvent) { controlador (e, panel, button, partida) }
@@ -144,6 +145,12 @@ class Interfaz extends JFrame("Jewels Legend Hero") {
 
       val idx = buscar_elem (componentes, b)
       intercambiar (idx, idx_puls, partida)
+
+      /* Actualiza el panel */
+      panel.removeAll ()
+      panel.repaint ()
+
+      Utils.mapear (crear_lista_botones (estado, panel, partida)) { e => panel.add (e) }
     }
 
   }
@@ -153,21 +160,46 @@ class Interfaz extends JFrame("Jewels Legend Hero") {
    */
   def intercambiar (idx_1: Int, idx_2: Int, partida: Partida) = {
 
-    if (comprobar_mov (idx_1, idx_2, partida))
-      println ("asdf")
+    val mov = comprobar_mov (idx_1, idx_2, partida)
+
+    if (mov != -1) {
+
+      val l = Utils.cambiar (estado._2, idx_1, idx_2)
+
+      val huecos: List [Any] = Main.eliminar (l, Main.comprobar_matriz (partida, l))
+      val puntos: Int = (estado._1 + Main.contar_huecos (huecos))
+
+      val nueva_matriz: List [Any] = Main.tratar_huecos (partida, huecos)
+
+      println (" ---- ")
+      println ("Huecos: ")
+      partida.imprimir_matriz (huecos)
+      println (" ---- ")
+
+      estado = (puntos, nueva_matriz)
+    }
   }
 
   /**
    * Comprueba que el movimiento es válido (es decir, que idx_1 está a 1 casilla de
-   * diferencia de idx_2)
+   * diferencia de idx_2) y devuelve el movimiento correspondiebnte, dentro de los
+   * siguientes:
+   *            0 - Arriba
+   *            1 - Abajo
+   *            2 - Derecha
+   *            3 - Izquierda
+   *
+   * Si no es un movimiento válido, devuelve -1
+   *
+   * Por ejemplo, si se devuelve 2 significa que idx_1 está a la derecha de idx_2
    */
-  def comprobar_mov (idx_1: Int, idx_2: Int, partida: Partida): Boolean = {
+  def comprobar_mov (idx_1: Int, idx_2: Int, partida: Partida): Int = {
 
-    (
-      (math.abs (idx_1 - idx_2) == 1)
-      || ((idx_1 + partida.columnas) == idx_2)
-      || ((idx_1 - partida.columnas) == idx_2)
-    )
+    if ((idx_1 - idx_2) == 1) 2
+    else if ((idx_1 - idx_2) == -1) 3
+    else if ((idx_1 - partida.columnas) == idx_2) 1
+    else if ((idx_1 + partida.columnas) == idx_2) 0
+    else -1
   }
 
   /**
