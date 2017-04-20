@@ -2,6 +2,7 @@ package interfaz
 
 import javax.swing._   
 import java.awt.event._
+import java.awt.Color
 import JFrame._ 
 
 import malla.Partida
@@ -32,7 +33,11 @@ class Interfaz extends JFrame("Jewels Legend Hero") {
   val gris:ImageIcon = new ImageIcon("./img/gris.png") 
   val amarillo:ImageIcon = new ImageIcon("./img/amarillo.png") 
   val vacio:ImageIcon = new ImageIcon("./img/vacio.png") 
-   
+
+  /* Color al pulsar un botón */
+  val pulsado: Color = Color.BLACK
+
+
   def crear_ventana(partida: Partida, estado: (Int, List [Any])): Unit = {
     
     //tamaño de diamante 50 * 50
@@ -86,16 +91,18 @@ class Interfaz extends JFrame("Jewels Legend Hero") {
       def actionPerformed (e: ActionEvent) { controlador (e, panel, button) }
     })
 
+    button.setBackground (color (id))
+
     id match {
-      case 1 => button.setIcon(azul);button
-      case 2 => button.setIcon(rojo);button
-      case 3 => button.setIcon(naranja);button
-      case 4 => button.setIcon(verde);button
-      case 5 => button.setIcon(plata);button
-      case 6 => button.setIcon(morado);button
-      case 7 => button.setIcon(gris);button
-      case 8 => button.setIcon(amarillo);button
-      case _ => button.setIcon(vacio);button
+      case 1 => button.setIcon(azul);     button
+      case 2 => button.setIcon(rojo);     button
+      case 3 => button.setIcon(naranja);  button
+      case 4 => button.setIcon(verde);    button
+      case 5 => button.setIcon(plata);    button
+      case 6 => button.setIcon(morado);   button
+      case 7 => button.setIcon(gris);     button
+      case 8 => button.setIcon(amarillo); button
+      case _ => button.setIcon(vacio);    button
     }
   }
 
@@ -105,12 +112,50 @@ class Interfaz extends JFrame("Jewels Legend Hero") {
    */
   def controlador (e: ActionEvent, panel: JPanel, b: JButton) = {
 
-    println ("Botón pulsado - " + buscar_elem (panel.getComponents ().toList, b))
+    val componentes = panel.getComponents ().toList
+    val idx_puls: Int = buscar_pulsado (componentes)
+
+    if (idx_puls == -1) {
+
+      b.setBackground (pulsado)
+    } else {
+
+      val idx = buscar_elem (componentes, b)
+      println ("Actual: " + idx + " - Pulsada: " + idx_puls)
+    }
+
+  }
+
+  /**
+   * Busca en la lista un botón pulsado (getBackground () == pulsado)
+   */
+  def buscar_pulsado (lista: List [Any], contador: Int = 0): Int = {
+
+    if (lista.isEmpty) {
+
+      -1
+    } else {
+
+      val h = lista.head
+
+      h match {
+        case h: JButton => {
+
+              if (h.getBackground () == pulsado)
+                contador
+              else
+                buscar_pulsado (lista.tail, contador + 1)
+        }
+        case _ => buscar_pulsado(lista.tail, contador + 1)
+      }
+
+    }
+
   }
 
 
   /**
-   * Busca el elemento en la lista y devuelve su índice
+   * Busca el elemento en la lista y devuelve su índice, o -1 si no se ha encontrado
    */
   def buscar_elem (lista: List [Any], elem: Any, contador: Int = 0): Int = {
 
@@ -123,6 +168,25 @@ class Interfaz extends JFrame("Jewels Legend Hero") {
         contador
       else
         buscar_elem (lista.tail, elem, contador + 1)
+    }
+  }
+
+  /**
+   * Devuelve el color que corresponde con el diamante
+   */
+  def color (diamante: Any): Color = {
+
+    diamante match {
+
+      case 1 => Color.BLUE
+      case 2 => Color.RED
+      case 3 => Color.YELLOW
+      case 4 => Color.GREEN
+      case 5 => Color.CYAN
+      case 6 => Color.MAGENTA
+      case 7 => Color.PINK
+      case 8 => Color.WHITE
+      case _ => Color.BLACK
     }
   }
 
