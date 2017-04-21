@@ -6,6 +6,7 @@ import JFrame._
 
 import malla.Partida
 import utils.Utils
+import main.Main
 
 object GUI_main {
 
@@ -52,33 +53,28 @@ class Interfaz extends JFrame("Jewels Legend Hero") {
     val columnas = partida.columnas
 
     estado = estado_ini
+    estado = Main.eliminar_coicidencias(partida,estado)
+
 
     setDefaultLookAndFeelDecorated(true)
 
     setDefaultCloseOperation(EXIT_ON_CLOSE)
 
-    /*val button = new JButton()
-    //getContentPane() add button
-    
-    button.setText("Funciona")
-   
-    button addActionListener new ActionListener { 
-    def actionPerformed(e : ActionEvent) = 
-        Console println "Hello world" 
-    }
-   */
-    println ("----\nPuntos: " + estado_ini._1 + "\n----")
+
+
+    val score: JLabel = new JLabel()
+    score.setText("Puntuacion: "+ estado._1)
 
     val panel: JPanel = new JPanel()
     panel.setSize(columnas * 50,filas * 50)
     panel.setLayout (new GridLayout (filas, columnas))
 
     Utils.mapear (crear_lista_botones (estado, panel, partida)) { b => panel.add (b) }
-    key_bindings (panel, partida)
-
+//    key_bindings (panel, partida)
+//    panel.add (score)
     this.setContentPane(panel)
 
-    setSize(50 + columnas * 50,50 + filas * 60)
+    setSize(50 + columnas * 50,50 + filas * 50)
     setVisible(true);
     setResizable (false)
   }
@@ -92,19 +88,19 @@ class Interfaz extends JFrame("Jewels Legend Hero") {
    */
   def key_bindings (panel: JPanel, partida: Partida) = {
 
-    this.getInputMap ().clear ()
-    this.getActionMap ().clear ()
+    panel.getInputMap ().clear ()
+    panel.getActionMap ().clear ()
     /* Teclas */
-    this.getInputMap ().put (KeyStroke.getKeyStroke ("Q"), "Salir");
-    this.getInputMap ().put (KeyStroke.getKeyStroke ("G"), "Guardar");
-    this.getInputMap ().put (KeyStroke.getKeyStroke ("C"), "Comprobar");
-    this.getInputMap ().put (KeyStroke.getKeyStroke ("E"), "Estrategia");
+    panel.getInputMap ().put (KeyStroke.getKeyStroke ("Q"), "Salir");
+    panel.getInputMap ().put (KeyStroke.getKeyStroke ("G"), "Guardar");
+    panel.getInputMap ().put (KeyStroke.getKeyStroke ("C"), "Comprobar");
+    panel.getInputMap ().put (KeyStroke.getKeyStroke ("E"), "Estrategia");
     /* Acciones */
-    this.getActionMap ().put ("Salir", new AbstractAction () {
+    panel.getActionMap ().put ("Salir", new AbstractAction () {
 
       def actionPerformed (e: ActionEvent) { sys.exit (0) }
     });
-    this.getActionMap ().put ("Guardar", new AbstractAction () {
+    panel.getActionMap ().put ("Guardar", new AbstractAction () {
 
       def actionPerformed (e: ActionEvent) { 
         Utils.toFile (new java.io.File ("partida.txt")) {
@@ -112,14 +108,14 @@ class Interfaz extends JFrame("Jewels Legend Hero") {
         }
       }
     });
-    this.getActionMap ().put ("Comprobar", new AbstractAction () {
+    panel.getActionMap ().put ("Comprobar", new AbstractAction () {
 
       def actionPerformed (e: ActionEvent) {
         val cambios = Main.eliminar_coicidencias (partida, estado)      
         crear_ventana (partida, cambios)
       }
     });
-    this.getActionMap ().put ("Estrategia", new AbstractAction () {
+    panel.getActionMap ().put ("Estrategia", new AbstractAction () {
 
       def actionPerformed (e: ActionEvent) {
         val cambios = Main.estrategia_optima (partida, estado)
@@ -212,7 +208,7 @@ class Interfaz extends JFrame("Jewels Legend Hero") {
 
     val mov = comprobar_mov (idx_1, idx_2, partida)
 
-    if (mov != -1) {
+    if ((mov != -1)&&(Main.mov_valido(Main.obtener_posicion(idx_2,partida),partida,mov,estado))) {
 
       val l = Utils.cambiar (estado._2, idx_1, idx_2)
 
@@ -224,22 +220,22 @@ class Interfaz extends JFrame("Jewels Legend Hero") {
       partida.imprimir_matriz(estado._2)
       println (" ---- ")
       println ("Huecos: ")
+
+
+
       crear_ventana(partida,(estado._1,huecos))
+
+
       partida.imprimir_matriz (huecos)
       
       println (" --Nueva matriz-- ")
       partida.imprimir_matriz (nueva_matriz)
-      println (" ---- ")
-      
-      
-      crear_ventana(partida,(estado._1,nueva_matriz))
-      
+      println (" ---- ")     
       
       estado = (puntos, nueva_matriz)
-    } else {     
-
-      crear_ventana(partida,estado)
     }
+
+    crear_ventana(partida, (estado))
     
   }
 
